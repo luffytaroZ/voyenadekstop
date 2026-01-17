@@ -3,10 +3,7 @@ node_modules/
 
 # Build outputs
 dist/
-release/
-*.dmg
-*.zip
-*.app
+src-tauri/target/
 
 # Environment files
 .env

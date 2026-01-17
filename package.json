@@ -1,18 +1,19 @@
 {
-  "name": "voyena-desktop",
+  "name": "voyena",
   "version": "1.0.0",
-  "description": "Voyena Desktop App for macOS",
-  "main": "dist/electron/main.js",
+  "description": "Voyena - Notes App",
+  "type": "module",
   "author": "Voyena",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
-    "dev:vite": "vite",
-    "dev:electron": "node scripts/wait-for-vite.js && electron .",
-    "build": "tsc && vite build && electron-builder",
-    "build:mac": "tsc && vite build && electron-builder --mac",
+    "dev": "vite",
+    "dev:tauri": "tauri dev",
+    "build": "tsc && vite build",
+    "build:tauri": "tauri build",
+    "build:mac": "tauri build --target universal-apple-darwin",
     "preview": "vite preview",
+    "tauri": "tauri",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx"
   },
@@ -20,12 +21,30 @@
     "@supabase/supabase-js": "^2.56.0",
     "@tanstack/react-query": "^5.64.0",
     "@tanstack/react-router": "^1.95.0",
+    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-store": "^2.0.0",
+    "@tiptap/extension-character-count": "^3.15.3",
+    "@tiptap/extension-color": "^3.15.3",
+    "@tiptap/extension-highlight": "^3.15.3",
+    "@tiptap/extension-image": "^3.15.3",
+    "@tiptap/extension-link": "^3.15.3",
     "@tiptap/extension-placeholder": "^3.15.3",
+    "@tiptap/extension-subscript": "^3.15.3",
+    "@tiptap/extension-superscript": "^3.15.3",
+    "@tiptap/extension-table": "^3.15.3",
+    "@tiptap/extension-table-cell": "^3.15.3",
+    "@tiptap/extension-table-header": "^3.15.3",
+    "@tiptap/extension-table-row": "^3.15.3",
+    "@tiptap/extension-task-item": "^3.15.3",
+    "@tiptap/extension-task-list": "^3.15.3",
+    "@tiptap/extension-text-align": "^3.15.3",
+    "@tiptap/extension-text-style": "^3.15.3",
+    "@tiptap/extension-typography": "^3.15.3",
+    "@tiptap/extension-underline": "^3.15.3",
     "@tiptap/pm": "^3.15.3",
     "@tiptap/react": "^3.15.3",
     "@tiptap/starter-kit": "^3.15.3",
     "date-fns": "^4.1.0",
-    "electron-store": "^10.0.0",
     "openai": "^5.20.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -34,62 +53,16 @@
   "devDependencies": {
     "@tanstack/react-query-devtools": "^5.64.0",
     "@tanstack/router-devtools": "^1.95.0",
+    "@tauri-apps/cli": "^2.0.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
     "@vitejs/plugin-react": "^4.5.2",
-    "concurrently": "^9.1.2",
-    "electron": "^35.2.0",
-    "electron-builder": "^26.0.12",
     "eslint": "^9.39.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "typescript": "~5.9.2",
-    "vite": "^6.3.1",
-    "wait-on": "^8.0.5"
-  },
-  "build": {
-    "appId": "com.voyena.desktop",
-    "productName": "Voyena",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist/**/*",
-      "package.json"
-    ],
-    "mac": {
-      "category": "public.app-category.productivity",
-      "icon": "assets/icon.icns",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": ["x64", "arm64"]
-        },
-        {
-          "target": "zip",
-          "arch": ["x64", "arm64"]
-        }
-      ],
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "entitlements": "entitlements.mac.plist",
-      "entitlementsInherit": "entitlements.mac.plist"
-    },
-    "dmg": {
-      "contents": [
-        {
-          "x": 130,
-          "y": 220
-        },
-        {
-          "x": 410,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
-    }
+    "vite": "^6.3.1"
   }
 }

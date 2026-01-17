@@ -9,6 +9,7 @@ export interface ShortcutHandlers {
   onToggleAI?: () => void;
   onSettings?: () => void;
   onEscape?: () => void;
+  onToggleFocus?: () => void;
 }
 
 export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
@@ -85,6 +86,13 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
       h.onSettings?.();
       return;
     }
+
+    // Cmd/Ctrl + .: Focus/Zen mode
+    if (isMod && event.key === '.') {
+      event.preventDefault();
+      h.onToggleFocus?.();
+      return;
+    }
   }, []);
 
   useEffect(() => {
@@ -102,6 +110,7 @@ export const SHORTCUT_LABELS = {
   toggleSidebar: '⌘\\',
   toggleAI: '⌘J',
   settings: '⌘,',
+  focusMode: '⌘.',
   escape: 'Esc',
   bold: '⌘B',
   italic: '⌘I',

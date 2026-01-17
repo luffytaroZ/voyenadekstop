@@ -1,13 +1,13 @@
 import OpenAI from 'openai';
 import type { AIMessage } from '../types';
 
+const STORAGE_KEY = 'voyena:openai-api-key';
+
 class AIService {
   private client: OpenAI | null = null;
 
-  // ============ Initialization ============
-
   async initialize(): Promise<void> {
-    const apiKey = await this.getStoredApiKey();
+    const apiKey = localStorage.getItem(STORAGE_KEY);
     if (apiKey) {
       this.client = new OpenAI({
         apiKey,
@@ -36,7 +36,7 @@ class AIService {
 
       // Key works - save and use it
       this.client = testClient;
-      await this.storeApiKey(key);
+      localStorage.setItem(STORAGE_KEY, key);
       return true;
     } catch (error) {
       console.error('[AI] API key validation failed:', error);
@@ -46,10 +46,8 @@ class AIService {
 
   async clearApiKey(): Promise<void> {
     this.client = null;
-    await window.electronAPI?.store.delete('openai-api-key');
+    localStorage.removeItem(STORAGE_KEY);
   }
-
-  // ============ Core Chat ============
 
   async chat(
     messages: AIMessage[],
@@ -83,15 +81,12 @@ class AIService {
     return content;
   }
 
-  // ============ Writing Helpers ============
-
   async improveWriting(text: string): Promise<string> {
     return this.chat([
       {
         id: '1',
         role: 'system',
-        content:
-          'Improve the following text for clarity, grammar, and style. Return only the improved text.',
+        content: 'Improve the following text for clarity, grammar, and style. Return only the improved text.',
         timestamp: new Date().toISOString(),
       },
       {
@@ -125,8 +120,7 @@ class AIService {
       {
         id: '1',
         role: 'system',
-        content:
-          'Continue writing from where this text ends. Match the style and tone. Return only the continuation.',
+        content: 'Continue writing from where this text ends. Match the style and tone. Return only the continuation.',
         timestamp: new Date().toISOString(),
       },
       {
@@ -143,8 +137,7 @@ class AIService {
       {
         id: '1',
         role: 'system',
-        content:
-          'Expand on this text by adding more details, examples, and depth while maintaining the original meaning.',
+        content: 'Expand on this text by adding more details, examples, and depth while maintaining the original meaning.',
         timestamp: new Date().toISOString(),
       },
       {
@@ -176,24 +169,6 @@ Answer based on this context when relevant.`,
         timestamp: new Date().toISOString(),
       },
     ]);
-  }
-
-  // ============ Private Helpers ============
-
-  private async getStoredApiKey(): Promise<string | null> {
-    if (window.electronAPI) {
-      const key = await window.electronAPI.store.get('openai-api-key');
-      return (key as string) ?? null;
-    }
-    return localStorage.getItem('openai-api-key');
-  }
-
-  private async storeApiKey(key: string): Promise<void> {
-    if (window.electronAPI) {
-      await window.electronAPI.store.set('openai-api-key', key);
-    } else {
-      localStorage.setItem('openai-api-key', key);
-    }
   }
 }
 

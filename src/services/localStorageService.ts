@@ -84,13 +84,6 @@ class LocalStorageService {
   // ============ Core ============
   private get<T>(key: string): T | null {
     try {
-      // Prefer Electron store if available
-      if (window.electronAPI) {
-        // Note: This is sync but electron store get is async
-        // For offline local storage, use localStorage as fallback
-        const stored = localStorage.getItem(key);
-        return stored ? JSON.parse(stored) : null;
-      }
       const stored = localStorage.getItem(key);
       return stored ? JSON.parse(stored) : null;
     } catch {
@@ -102,11 +95,6 @@ class LocalStorageService {
     try {
       const serialized = JSON.stringify(value);
       localStorage.setItem(key, serialized);
-
-      // Also persist to Electron store for durability
-      if (window.electronAPI) {
-        window.electronAPI.store.set(key, value);
-      }
     } catch (error) {
       console.error('[LocalStorage] Failed to save:', error);
     }

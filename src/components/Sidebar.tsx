@@ -5,13 +5,6 @@ import { isSupabaseConfigured } from '../services/supabase';
 import type { Note } from '../types';
 import type { User } from '@supabase/supabase-js';
 
-interface Profile {
-  id: string;
-  email: string;
-  full_name: string | null;
-  avatar_url: string | null;
-}
-
 interface SidebarProps {
   notes: Note[];
   isLoading: boolean;
@@ -25,7 +18,6 @@ interface SidebarProps {
   onOpenSettings: () => void;
   searchInputRef: RefObject<HTMLInputElement | null>;
   user?: User | null;
-  profile?: Profile | null;
   onSignOut?: () => void;
 }
 
@@ -42,7 +34,6 @@ export default function Sidebar({
   onOpenSettings,
   searchInputRef,
   user,
-  profile,
   onSignOut,
 }: SidebarProps) {
   const { data: folders = [] } = useFolders();
@@ -249,11 +240,11 @@ export default function Sidebar({
         <div className="user-menu">
           <div className="user-info">
             <div className="user-avatar">
-              {getInitials(profile?.full_name || user.email || 'U')}
+              {getInitials(user.email || 'U')}
             </div>
             <div className="user-details">
               <div className="user-name">
-                {profile?.full_name || 'User'}
+                {user.email?.split('@')[0] || 'User'}
               </div>
               <div className="user-email">
                 {user.email}

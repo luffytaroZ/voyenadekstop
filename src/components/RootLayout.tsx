@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Outlet, useParams, useNavigate, useRouter } from '@tanstack/react-router';
+import { Outlet, useParams, useNavigate } from '@tanstack/react-router';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useNotes, useCreateNote, useDeleteNote } from '../queries';
 import { aiService } from '../services/aiService';
@@ -8,19 +8,16 @@ import { isSupabaseConfigured } from '../services/supabase';
 import Sidebar from './Sidebar';
 import AIPanel from './AIPanel';
 import Settings from './Settings';
+import AuthPage from '../pages/AuthPage';
 import '../styles/app.css';
 
 export default function RootLayout() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-  const router = useRouter();
   const params = useParams({ strict: false });
-  const { status, user, profile, signOut } = useAuth();
+  const { status, user, signOut } = useAuth();
 
-  // Check if we're on the auth page
-  const isAuthPage = router.state.location.pathname === '/auth';
-
-  // Local UI state (replaces Zustand)
+  // Local UI state
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     const stored = localStorage.getItem('voyena:sidebarOpen');
     return stored !== null ? JSON.parse(stored) : true;
@@ -28,12 +25,13 @@ export default function RootLayout() {
   const [aiPanelOpen, setAIPanelOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [focusMode, setFocusMode] = useState(false);
 
   // Get IDs from URL params
   const noteId = (params as { noteId?: string }).noteId ?? null;
   const folderId = (params as { folderId?: string }).folderId ?? null;
 
-  // Data
+  // Data - only fetch if authenticated
   const { data: notes = [], isLoading } = useNotes(folderId);
   const createNote = useCreateNote();
   const deleteNote = useDeleteNote();
@@ -47,20 +45,6 @@ export default function RootLayout() {
   useEffect(() => {
     aiService.initialize();
   }, []);
-
-  // Auth redirect logic
-  useEffect(() => {
-    // Only redirect if Supabase is configured
-    if (!isSupabaseConfigured) return;
-
-    if (status === 'signedOut' && !isAuthPage) {
-      navigate({ to: '/auth' });
-    } else if (status === 'signedIn' && isAuthPage) {
-      navigate({ to: '/' });
-    }
-  }, [status, isAuthPage, navigate]);
-
-  // Theme is handled by ThemeContext/ThemeProvider in main.tsx
 
   // Handlers
   const handleSelectNote = (id: string) => {
@@ -88,6 +72,14 @@ export default function RootLayout() {
 
   const toggleSidebar = () => setSidebarOpen((prev: boolean) => !prev);
   const toggleAIPanel = () => setAIPanelOpen((prev: boolean) => !prev);
+  const toggleFocusMode = () => {
+    setFocusMode((prev: boolean) => {
+      if (!prev) {
+        setAIPanelOpen(false);
+      }
+      return !prev;
+    });
+  };
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -109,10 +101,16 @@ export default function RootLayout() {
     onEscape: () => {
       setSearchQuery('');
       setSettingsOpen(false);
+      if (focusMode) setFocusMode(false);
     },
+    onToggleFocus: toggleFocusMode,
   });
 
-  // Show loading screen while checking auth
+  // ========================================
+  // AUTH GATE - Show auth FIRST if not signed in
+  // ========================================
+
+  // Loading - checking auth status
   if (isSupabaseConfigured && status === 'loading') {
     return (
       <div className="loading-screen">
@@ -122,23 +120,35 @@ export default function RootLayout() {
     );
   }
 
-  // Show auth page (no sidebar)
-  if (isAuthPage) {
+  // Not signed in - show auth page directly
+  if (isSupabaseConfigured && status === 'signedOut') {
     return (
       <div className="app">
         <div className="drag-region" />
-        <Outlet />
+        <AuthPage />
       </div>
     );
   }
 
+  // ========================================
+  // MAIN APP - Only shows if authenticated
+  // ========================================
+
   return (
-    <div className="app">
-      {/* Draggable region for window controls */}
+    <div className={`app ${focusMode ? 'focus-mode' : ''}`}>
       <div className="drag-region" />
 
-      {/* Sidebar */}
-      {sidebarOpen && (
+      {focusMode && (
+        <button
+          className="exit-focus-mode"
+          onClick={() => setFocusMode(false)}
+          title="Exit Focus Mode (Esc)"
+        >
+          Exit Focus Mode
+        </button>
+      )}
+
+      {sidebarOpen && !focusMode && (
         <Sidebar
           notes={notes}
           isLoading={isLoading}
@@ -152,20 +162,15 @@ export default function RootLayout() {
           onOpenSettings={() => setSettingsOpen(true)}
           searchInputRef={searchInputRef}
           user={user}
-          profile={profile}
           onSignOut={signOut}
         />
       )}
 
-      {/* Main content */}
-      <main className={`main-content ${!sidebarOpen ? 'full-width' : ''}`}>
+      <main className={`main-content ${!sidebarOpen || focusMode ? 'full-width' : ''} ${focusMode ? 'focus-content' : ''}`}>
         <Outlet />
       </main>
 
-      {/* AI Panel */}
-      {aiPanelOpen && <AIPanel onClose={() => setAIPanelOpen(false)} />}
-
-      {/* Settings Modal */}
+      {aiPanelOpen && !focusMode && <AIPanel onClose={() => setAIPanelOpen(false)} />}
       {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} />}
     </div>
   );

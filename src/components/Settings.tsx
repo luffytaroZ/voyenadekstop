@@ -172,6 +172,10 @@ export default function Settings({ onClose }: SettingsProps) {
                 <kbd>⌘\</kbd>
               </div>
               <div className="shortcut-item">
+                <span>Focus Mode</span>
+                <kbd>⌘.</kbd>
+              </div>
+              <div className="shortcut-item">
                 <span>Delete Note</span>
                 <kbd>⌘⌫</kbd>
               </div>
@@ -186,9 +190,9 @@ export default function Settings({ onClose }: SettingsProps) {
           <section className="settings-section">
             <h3>About</h3>
             <p className="about-text">
-              Voyena Desktop v1.0.0
+              Voyena v1.0.0
               <br />
-              Built with Electron, React, and TanStack Query
+              Built with Tauri, React, and TanStack Query
             </p>
           </section>
         </div>

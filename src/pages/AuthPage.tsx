@@ -4,18 +4,6 @@ import { isSupabaseConfigured } from '../services/supabase';
 
 type AuthMode = 'signin' | 'signup' | 'forgot';
 
-const TITLES: Record<AuthMode, string> = {
-  signin: 'Sign In',
-  signup: 'Create Account',
-  forgot: 'Reset Password',
-};
-
-const DESCRIPTIONS: Record<AuthMode, string> = {
-  signin: 'Welcome back to Voyena',
-  signup: 'Start your journey with Voyena',
-  forgot: 'Enter your email to reset your password',
-};
-
 export default function AuthPage() {
   const { signIn, signUp, resetPassword } = useAuth();
 
@@ -40,9 +28,7 @@ export default function AuthPage() {
   }, [clearForm]);
 
   const validate = useCallback(() => {
-    const trimmedEmail = email.trim();
-
-    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError('Please enter a valid email address');
       return false;
     }
@@ -80,13 +66,13 @@ export default function AuthPage() {
         case 'signup':
           result = await signUp(email, password);
           if (!result.error) {
-            setSuccess('Account created! Please check your email to verify.');
+            setSuccess('Check your email to verify your account');
           }
           break;
         case 'forgot':
           result = await resetPassword(email);
           if (!result.error) {
-            setSuccess('Password reset email sent! Check your inbox.');
+            setSuccess('Password reset email sent');
           }
           break;
       }
@@ -94,7 +80,7 @@ export default function AuthPage() {
       if (result.error) {
         setError(result.error);
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
@@ -105,16 +91,10 @@ export default function AuthPage() {
     return (
       <div className="auth-page">
         <div className="auth-container">
-          <div className="auth-header">
-            <h1 className="auth-logo">Voyena</h1>
-            <p className="auth-description">Supabase not configured</p>
-          </div>
-          <div className="auth-error">
-            <p>To enable authentication, add the following to your .env file:</p>
-            <code>
-              VITE_SUPABASE_URL=your_supabase_url<br />
-              VITE_SUPABASE_ANON_KEY=your_anon_key
-            </code>
+          <h1 className="auth-logo">VOYENA</h1>
+          <p className="auth-subtitle">Setup Required</p>
+          <div className="auth-notice">
+            Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file
           </div>
         </div>
       </div>
@@ -124,116 +104,73 @@ export default function AuthPage() {
   return (
     <div className="auth-page">
       <div className="auth-container">
-        <div className="auth-header">
-          <h1 className="auth-logo">Voyena</h1>
-          <h2 className="auth-title">{TITLES[mode]}</h2>
-          <p className="auth-description">{DESCRIPTIONS[mode]}</p>
-        </div>
+        <h1 className="auth-logo">VOYENA</h1>
+
+        <p className="auth-subtitle">
+          {mode === 'signin' && 'Welcome back'}
+          {mode === 'signup' && 'Create account'}
+          {mode === 'forgot' && 'Reset password'}
+        </p>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           {error && <div className="auth-error">{error}</div>}
           {success && <div className="auth-success">{success}</div>}
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              disabled={loading}
-              autoComplete="email"
-              autoFocus
-            />
-          </div>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            disabled={loading}
+            autoComplete="email"
+            autoFocus
+          />
 
           {mode !== 'forgot' && (
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                disabled={loading}
-                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-              />
-            </div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              disabled={loading}
+              autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+            />
           )}
 
           {mode === 'signup' && (
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                disabled={loading}
-                autoComplete="new-password"
-              />
-            </div>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm password"
+              disabled={loading}
+              autoComplete="new-password"
+            />
           )}
 
-          <button
-            type="submit"
-            className="auth-submit"
-            disabled={loading}
-          >
-            {loading ? (
-              <span className="loading-dots">
-                <span>.</span><span>.</span><span>.</span>
-              </span>
-            ) : (
-              TITLES[mode]
+          <button type="submit" className="auth-button" disabled={loading}>
+            {loading ? '...' : (
+              <>
+                {mode === 'signin' && 'Sign in'}
+                {mode === 'signup' && 'Create account'}
+                {mode === 'forgot' && 'Send reset link'}
+              </>
             )}
           </button>
         </form>
 
-        <div className="auth-footer">
+        <div className="auth-links">
           {mode === 'signin' && (
             <>
-              <button
-                className="auth-link"
-                onClick={() => switchMode('forgot')}
-              >
-                Forgot password?
-              </button>
-              <div className="auth-divider" />
-              <p>
-                Don't have an account?{' '}
-                <button
-                  className="auth-link"
-                  onClick={() => switchMode('signup')}
-                >
-                  Create one
-                </button>
-              </p>
+              <button onClick={() => switchMode('forgot')}>Forgot password?</button>
+              <button onClick={() => switchMode('signup')}>Create account</button>
             </>
           )}
-
           {mode === 'signup' && (
-            <p>
-              Already have an account?{' '}
-              <button
-                className="auth-link"
-                onClick={() => switchMode('signin')}
-              >
-                Sign in
-              </button>
-            </p>
+            <button onClick={() => switchMode('signin')}>Already have an account?</button>
           )}
-
           {mode === 'forgot' && (
-            <button
-              className="auth-link"
-              onClick={() => switchMode('signin')}
-            >
-              Back to sign in
-            </button>
+            <button onClick={() => switchMode('signin')}>Back to sign in</button>
           )}
         </div>
       </div>

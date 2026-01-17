@@ -1,65 +1,53 @@
 import { createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
 import RootLayout from './components/RootLayout';
-import NotePage from './pages/NotePage';
 import HomePage from './pages/HomePage';
-import AuthPage from './pages/AuthPage';
+import NotePage from './pages/NotePage';
 
-// Root route with layout
+// Root layout - handles auth gating internally
 const rootRoute = createRootRoute({
   component: RootLayout,
 });
 
-// Auth route - sign in, sign up, forgot password
-const authRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/auth',
-  component: AuthPage,
-});
-
-// Home route - no note selected
+// App routes (only accessible when authenticated)
 const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: HomePage,
 });
 
-// Note route - specific note selected
 const noteRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/notes/$noteId',
   component: NotePage,
 });
 
-// Folder route - filter by folder
 const folderRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/folders/$folderId',
   component: HomePage,
 });
 
-// Folder + Note route
 const folderNoteRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/folders/$folderId/notes/$noteId',
   component: NotePage,
 });
 
-// Route tree
+// Build route tree
 const routeTree = rootRoute.addChildren([
-  authRoute,
   homeRoute,
   noteRoute,
   folderRoute,
   folderNoteRoute,
 ]);
 
-// Create router
+// Export router
 export const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
 });
 
-// Type registration for TypeScript
+// Type registration
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;

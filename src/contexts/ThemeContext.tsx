@@ -13,6 +13,13 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const STORAGE_KEY = 'voyena:theme';
 
+function getSystemTheme(): 'light' | 'dark' {
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return 'dark';
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -26,14 +33,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, newTheme);
   }, []);
 
-  // Apply theme to document
   useEffect(() => {
-    const applyTheme = async () => {
+    const applyTheme = () => {
       let resolved: EffectiveTheme = 'dark';
 
       if (theme === 'system') {
-        const systemTheme = await window.electronAPI?.getTheme();
-        resolved = systemTheme ?? 'dark';
+        resolved = getSystemTheme();
       } else {
         resolved = theme;
       }
@@ -45,14 +50,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     applyTheme();
 
     // Listen for system theme changes
-    const handleSystemChange = (newTheme: 'dark' | 'light') => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemChange = (e: MediaQueryListEvent) => {
       if (theme === 'system') {
+        const newTheme = e.matches ? 'dark' : 'light';
         setEffectiveTheme(newTheme);
         document.documentElement.setAttribute('data-theme', newTheme);
       }
     };
 
-    window.electronAPI?.onThemeChange(handleSystemChange);
+    mediaQuery.addEventListener('change', handleSystemChange);
+    return () => mediaQuery.removeEventListener('change', handleSystemChange);
   }, [theme]);
 
   return (
