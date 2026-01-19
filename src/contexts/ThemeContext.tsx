@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { storeService } from '../services/storeService';
 import type { Theme } from '../types';
 
 type EffectiveTheme = 'light' | 'dark' | 'sepia' | 'high-contrast';
@@ -7,11 +8,10 @@ interface ThemeContextValue {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   effectiveTheme: EffectiveTheme;
+  isLoading: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
-
-const STORAGE_KEY = 'voyena:theme';
 
 function getSystemTheme(): 'light' | 'dark' {
   if (typeof window !== 'undefined' && window.matchMedia) {
@@ -21,16 +21,31 @@ function getSystemTheme(): 'light' | 'dark' {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return (stored as Theme) || 'system';
-  });
-
+  const [theme, setThemeState] = useState<Theme>('system');
   const [effectiveTheme, setEffectiveTheme] = useState<EffectiveTheme>('dark');
+  const [isLoading, setIsLoading] = useState(true);
 
-  const setTheme = useCallback((newTheme: Theme) => {
+  // Load theme from store on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const storedTheme = await storeService.getTheme();
+        setThemeState(storedTheme);
+      } catch (error) {
+        console.error('[Theme] Failed to load:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, []);
+
+  const setTheme = useCallback(async (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem(STORAGE_KEY, newTheme);
+    try {
+      await storeService.setTheme(newTheme);
+    } catch (error) {
+      console.error('[Theme] Failed to save:', error);
+    }
   }, []);
 
   useEffect(() => {
@@ -64,7 +79,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, effectiveTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, effectiveTheme, isLoading }}>
       {children}
     </ThemeContext.Provider>
   );

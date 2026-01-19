@@ -19,6 +19,8 @@ import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
 import Typography from '@tiptap/extension-typography';
 import CharacterCount from '@tiptap/extension-character-count';
+import { save } from '@tauri-apps/plugin-dialog';
+import { writeTextFile } from '@tauri-apps/plugin-fs';
 import { useUpdateNote, useCreateNote, useDeleteNote, useMoveNotesToFolder, useFolders } from '../queries';
 import { format } from 'date-fns';
 import type { Note } from '../types';
@@ -367,9 +369,8 @@ export default function NoteEditor({ note, onNoteDeleted }: NoteEditorProps) {
   };
 
   // Export note
-  const handleExport = (format: 'txt' | 'md' | 'html') => {
+  const handleExport = async (format: 'txt' | 'md' | 'html') => {
     let content = '';
-    let mimeType = '';
     let extension = '';
 
     const plainText = editor?.getText() || '';
@@ -377,30 +378,36 @@ export default function NoteEditor({ note, onNoteDeleted }: NoteEditorProps) {
     switch (format) {
       case 'txt':
         content = `${note.title}\n\n${plainText}`;
-        mimeType = 'text/plain';
         extension = 'txt';
         break;
       case 'md':
         content = `# ${note.title}\n\n${plainText}`;
-        mimeType = 'text/markdown';
         extension = 'md';
         break;
       case 'html':
         content = `<!DOCTYPE html><html><head><title>${note.title}</title></head><body><h1>${note.title}</h1>${note.content}</body></html>`;
-        mimeType = 'text/html';
         extension = 'html';
         break;
     }
 
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${note.title || 'Untitled'}.${extension}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+      const filePath = await save({
+        defaultPath: `${note.title || 'Untitled'}.${extension}`,
+        filters: [
+          {
+            name: format.toUpperCase(),
+            extensions: [extension],
+          },
+        ],
+      });
+
+      if (filePath) {
+        await writeTextFile(filePath, content);
+      }
+    } catch (error) {
+      console.error('[Export] Failed:', error);
+    }
+
     setShowActions(false);
   };
 

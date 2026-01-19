@@ -6,6 +6,18 @@
     "main"
   ],
   "permissions": [
-    "core:default"
+    "core:default",
+    "store:allow-get",
+    "store:allow-set",
+    "store:allow-delete",
+    "store:allow-keys",
+    "store:allow-clear",
+    "store:allow-load",
+    "store:allow-save",
+    "dialog:allow-save",
+    "dialog:allow-open",
+    "dialog:allow-message",
+    "fs:allow-write-text-file",
+    "fs:default"
   ]
 }

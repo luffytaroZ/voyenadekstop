@@ -1,19 +1,29 @@
 import OpenAI from 'openai';
+import { storeService } from './storeService';
 import type { AIMessage } from '../types';
-
-const STORAGE_KEY = 'voyena:openai-api-key';
 
 class AIService {
   private client: OpenAI | null = null;
+  private initPromise: Promise<void> | null = null;
 
   async initialize(): Promise<void> {
-    const apiKey = localStorage.getItem(STORAGE_KEY);
-    if (apiKey) {
-      this.client = new OpenAI({
-        apiKey,
-        dangerouslyAllowBrowser: true,
-      });
-    }
+    if (this.initPromise) return this.initPromise;
+
+    this.initPromise = (async () => {
+      try {
+        const apiKey = await storeService.getOpenAIApiKey();
+        if (apiKey) {
+          this.client = new OpenAI({
+            apiKey,
+            dangerouslyAllowBrowser: true,
+          });
+        }
+      } catch (error) {
+        console.error('[AI] Failed to initialize:', error);
+      }
+    })();
+
+    return this.initPromise;
   }
 
   isConfigured(): boolean {
@@ -36,7 +46,7 @@ class AIService {
 
       // Key works - save and use it
       this.client = testClient;
-      localStorage.setItem(STORAGE_KEY, key);
+      await storeService.setOpenAIApiKey(key);
       return true;
     } catch (error) {
       console.error('[AI] API key validation failed:', error);
@@ -46,7 +56,7 @@ class AIService {
 
   async clearApiKey(): Promise<void> {
     this.client = null;
-    localStorage.removeItem(STORAGE_KEY);
+    await storeService.clearOpenAIApiKey();
   }
 
   async chat(

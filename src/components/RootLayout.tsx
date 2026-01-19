@@ -3,6 +3,7 @@ import { Outlet, useParams, useNavigate } from '@tanstack/react-router';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useNotes, useCreateNote, useDeleteNote } from '../queries';
 import { aiService } from '../services/aiService';
+import { storeService } from '../services/storeService';
 import { useAuth } from '../contexts/AuthContext';
 import { isSupabaseConfigured } from '../services/supabase';
 import Sidebar from './Sidebar';
@@ -18,10 +19,8 @@ export default function RootLayout() {
   const { status, user, signOut } = useAuth();
 
   // Local UI state
-  const [sidebarOpen, setSidebarOpen] = useState(() => {
-    const stored = localStorage.getItem('voyena:sidebarOpen');
-    return stored !== null ? JSON.parse(stored) : true;
-  });
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarLoaded, setSidebarLoaded] = useState(false);
   const [aiPanelOpen, setAIPanelOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,10 +35,27 @@ export default function RootLayout() {
   const createNote = useCreateNote();
   const deleteNote = useDeleteNote();
 
+  // Load sidebar state from store
+  useEffect(() => {
+    (async () => {
+      try {
+        const open = await storeService.getSidebarOpen();
+        setSidebarOpen(open);
+      } catch (error) {
+        console.error('[RootLayout] Failed to load sidebar state:', error);
+      } finally {
+        setSidebarLoaded(true);
+      }
+    })();
+  }, []);
+
   // Persist sidebar state
   useEffect(() => {
-    localStorage.setItem('voyena:sidebarOpen', JSON.stringify(sidebarOpen));
-  }, [sidebarOpen]);
+    if (!sidebarLoaded) return;
+    storeService.setSidebarOpen(sidebarOpen).catch((error) => {
+      console.error('[RootLayout] Failed to save sidebar state:', error);
+    });
+  }, [sidebarOpen, sidebarLoaded]);
 
   // Initialize AI service
   useEffect(() => {
