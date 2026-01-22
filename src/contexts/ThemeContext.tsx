@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
-import { storeService } from '../services/storeService';
+import { settingsCommands } from '../services/tauriCommands';
 import type { Theme } from '../types';
 
 type EffectiveTheme = 'light' | 'dark' | 'sepia' | 'high-contrast';
@@ -12,6 +12,8 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
+
+const THEME_SETTING = 'theme';
 
 function getSystemTheme(): 'light' | 'dark' {
   if (typeof window !== 'undefined' && window.matchMedia) {
@@ -29,8 +31,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const storedTheme = await storeService.getTheme();
-        setThemeState(storedTheme);
+        const storedTheme = await settingsCommands.get(THEME_SETTING);
+        if (storedTheme && ['light', 'dark', 'sepia', 'high-contrast', 'system'].includes(storedTheme)) {
+          setThemeState(storedTheme as Theme);
+        }
       } catch (error) {
         console.error('[Theme] Failed to load:', error);
       } finally {
@@ -42,7 +46,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = useCallback(async (newTheme: Theme) => {
     setThemeState(newTheme);
     try {
-      await storeService.setTheme(newTheme);
+      await settingsCommands.set(THEME_SETTING, newTheme);
     } catch (error) {
       console.error('[Theme] Failed to save:', error);
     }

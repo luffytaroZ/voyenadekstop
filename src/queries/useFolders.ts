@@ -1,26 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { foldersService } from '../services/foldersService';
+import { foldersCommands } from '../services/tauriCommands';
 import { queryKeys } from '../lib/queryClient';
 import { useAuth } from '../contexts/AuthContext';
 import type { Folder, FolderCreate, FolderUpdate } from '../types';
 
-// Fallback user ID for offline mode (no auth)
-const FALLBACK_USER_ID = 'local';
-
-// Helper hook to get current user ID
-function useUserId() {
-  const { user } = useAuth();
-  return user?.id ?? FALLBACK_USER_ID;
-}
-
 // ============ Queries ============
 
 export function useFolders() {
-  const userId = useUserId();
+  const { user } = useAuth();
+  const userId = user?.id;
 
   return useQuery({
-    queryKey: queryKeys.folders.list(userId),
-    queryFn: () => foldersService.getAll(userId),
+    queryKey: [...queryKeys.folders.lists(), userId],
+    queryFn: () => foldersCommands.getAll(userId),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
@@ -28,7 +20,7 @@ export function useFolders() {
 export function useFolder(id: string | null) {
   return useQuery({
     queryKey: queryKeys.folders.detail(id ?? ''),
-    queryFn: () => (id ? foldersService.getById(id) : null),
+    queryFn: () => (id ? foldersCommands.getById(id) : null),
     enabled: !!id,
   });
 }
@@ -37,13 +29,13 @@ export function useFolder(id: string | null) {
 
 export function useCreateFolder() {
   const queryClient = useQueryClient();
-  const userId = useUserId();
+  const { user } = useAuth();
 
   return useMutation({
-    mutationFn: (data: FolderCreate) => foldersService.create(userId, data),
+    mutationFn: (data: FolderCreate) => foldersCommands.create(user?.id ?? '', data),
     onSuccess: (newFolder) => {
       // Optimistically add to list
-      queryClient.setQueryData<Folder[]>(queryKeys.folders.list(userId), (old) =>
+      queryClient.setQueryData<Folder[]>(queryKeys.folders.lists(), (old) =>
         old ? [...old, newFolder].sort((a, b) => a.name.localeCompare(b.name)) : [newFolder]
       );
 
@@ -61,7 +53,7 @@ export function useUpdateFolder() {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: FolderUpdate }) =>
-      foldersService.update(id, data),
+      foldersCommands.update(id, data),
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.folders.detail(id) });
 
@@ -92,18 +84,17 @@ export function useUpdateFolder() {
 
 export function useDeleteFolder() {
   const queryClient = useQueryClient();
-  const userId = useUserId();
 
   return useMutation({
-    mutationFn: (id: string) => foldersService.delete(id),
+    mutationFn: (id: string) => foldersCommands.delete(id),
     onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.folders.list(userId) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.folders.lists() });
 
       const previousFolders = queryClient.getQueryData<Folder[]>(
-        queryKeys.folders.list(userId)
+        queryKeys.folders.lists()
       );
 
-      queryClient.setQueryData<Folder[]>(queryKeys.folders.list(userId), (old) =>
+      queryClient.setQueryData<Folder[]>(queryKeys.folders.lists(), (old) =>
         old?.filter((f) => f.id !== id)
       );
 
@@ -111,7 +102,7 @@ export function useDeleteFolder() {
     },
     onError: (_err, _id, context) => {
       if (context?.previousFolders) {
-        queryClient.setQueryData(queryKeys.folders.list(userId), context.previousFolders);
+        queryClient.setQueryData(queryKeys.folders.lists(), context.previousFolders);
       }
     },
     onSuccess: (_data, id) => {

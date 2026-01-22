@@ -1,6 +1,8 @@
 import OpenAI from 'openai';
-import { storeService } from './storeService';
+import { settingsCommands } from './tauriCommands';
 import type { AIMessage } from '../types';
+
+const OPENAI_API_KEY_SETTING = 'openai_api_key';
 
 class AIService {
   private client: OpenAI | null = null;
@@ -11,7 +13,7 @@ class AIService {
 
     this.initPromise = (async () => {
       try {
-        const apiKey = await storeService.getOpenAIApiKey();
+        const apiKey = await settingsCommands.get(OPENAI_API_KEY_SETTING);
         if (apiKey) {
           this.client = new OpenAI({
             apiKey,
@@ -46,7 +48,7 @@ class AIService {
 
       // Key works - save and use it
       this.client = testClient;
-      await storeService.setOpenAIApiKey(key);
+      await settingsCommands.set(OPENAI_API_KEY_SETTING, key);
       return true;
     } catch (error) {
       console.error('[AI] API key validation failed:', error);
@@ -56,7 +58,7 @@ class AIService {
 
   async clearApiKey(): Promise<void> {
     this.client = null;
-    await storeService.clearOpenAIApiKey();
+    await settingsCommands.set(OPENAI_API_KEY_SETTING, '');
   }
 
   async chat(
@@ -183,3 +185,15 @@ Answer based on this context when relevant.`,
 }
 
 export const aiService = new AIService();
+
+// Helper function for simple one-off AI responses
+export async function generateAIResponse(prompt: string): Promise<string> {
+  return aiService.chat([
+    {
+      id: '1',
+      role: 'user',
+      content: prompt,
+      timestamp: new Date().toISOString(),
+    },
+  ]);
+}

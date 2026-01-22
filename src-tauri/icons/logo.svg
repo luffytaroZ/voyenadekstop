@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with solid purple color -->
+  <circle cx="256" cy="256" r="240" fill="#7c3aed"/>
+
+  <!-- 8 squares arranged in a circle -->
+  <!-- Top -->
+  <rect x="231" y="80" width="50" height="50" rx="8" fill="#ffffff" fill-opacity="0.95"/>
+  <!-- Top Right -->
+  <rect x="331" y="107" width="50" height="50" rx="8" fill="#ffffff" fill-opacity="0.85" transform="rotate(45 356 132)"/>
+  <!-- Right -->
+  <rect x="382" y="231" width="50" height="50" rx="8" fill="#ffffff" fill-opacity="0.9"/>
+  <!-- Bottom Right -->
+  <rect x="331" y="355" width="50" height="50" rx="8" fill="#ffffff" fill-opacity="0.8" transform="rotate(45 356 380)"/>
+  <!-- Bottom -->
+  <rect x="231" y="382" width="50" height="50" rx="8" fill="#ffffff" fill-opacity="0.95"/>
+  <!-- Bottom Left -->
+  <rect x="107" y="355" width="50" height="50" rx="8" fill="#ffffff" fill-opacity="0.85" transform="rotate(45 132 380)"/>
+  <!-- Left -->
+  <rect x="80" y="231" width="50" height="50" rx="8" fill="#ffffff" fill-opacity="0.9"/>
+  <!-- Top Left -->
+  <rect x="107" y="107" width="50" height="50" rx="8" fill="#ffffff" fill-opacity="0.8" transform="rotate(45 132 132)"/>
+
+  <!-- Center dot -->
+  <circle cx="256" cy="256" r="35" fill="#ffffff" fill-opacity="0.95"/>
+</svg>

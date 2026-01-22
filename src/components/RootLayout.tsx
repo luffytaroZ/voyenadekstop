@@ -3,7 +3,7 @@ import { Outlet, useParams, useNavigate } from '@tanstack/react-router';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useNotes, useCreateNote, useDeleteNote } from '../queries';
 import { aiService } from '../services/aiService';
-import { storeService } from '../services/storeService';
+import { settingsCommands } from '../services/tauriCommands';
 import { useAuth } from '../contexts/AuthContext';
 import { isSupabaseConfigured } from '../services/supabase';
 import Sidebar from './Sidebar';
@@ -39,8 +39,8 @@ export default function RootLayout() {
   useEffect(() => {
     (async () => {
       try {
-        const open = await storeService.getSidebarOpen();
-        setSidebarOpen(open);
+        const value = await settingsCommands.get('sidebar_open');
+        setSidebarOpen(value !== 'false');
       } catch (error) {
         console.error('[RootLayout] Failed to load sidebar state:', error);
       } finally {
@@ -52,7 +52,7 @@ export default function RootLayout() {
   // Persist sidebar state
   useEffect(() => {
     if (!sidebarLoaded) return;
-    storeService.setSidebarOpen(sidebarOpen).catch((error) => {
+    settingsCommands.set('sidebar_open', String(sidebarOpen)).catch((error) => {
       console.error('[RootLayout] Failed to save sidebar state:', error);
     });
   }, [sidebarOpen, sidebarLoaded]);
@@ -186,7 +186,7 @@ export default function RootLayout() {
         <Outlet />
       </main>
 
-      {aiPanelOpen && !focusMode && <AIPanel onClose={() => setAIPanelOpen(false)} />}
+      {aiPanelOpen && !focusMode && <AIPanel onClose={() => setAIPanelOpen(false)} notes={notes} />}
       {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} />}
     </div>
   );

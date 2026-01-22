@@ -37,15 +37,24 @@ export const queryKeys = {
   folders: {
     all: ['folders'] as const,
     lists: () => [...queryKeys.folders.all, 'list'] as const,
-    list: (userId?: string) => [...queryKeys.folders.lists(), { userId }] as const,
     details: () => [...queryKeys.folders.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.folders.details(), id] as const,
   },
 
-  // User/Auth
-  user: {
-    current: ['user', 'current'] as const,
-    session: ['user', 'session'] as const,
+  // Events
+  events: {
+    all: ['events'] as const,
+    lists: () => [...queryKeys.events.all, 'list'] as const,
+    list: (filters: { userId?: string; startDate?: string; endDate?: string }) =>
+      [...queryKeys.events.lists(), filters] as const,
+    details: () => [...queryKeys.events.all, 'detail'] as const,
+    detail: (id: string) => [...queryKeys.events.details(), id] as const,
+  },
+
+  // Settings
+  settings: {
+    all: ['settings'] as const,
+    key: (key: string) => [...queryKeys.settings.all, key] as const,
   },
 
   // AI

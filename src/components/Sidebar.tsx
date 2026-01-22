@@ -1,9 +1,18 @@
 import { RefObject, useState, useRef, useEffect } from 'react';
-import { useFolders, useCreateFolder, useUpdateNote, useDeleteNote, useMoveNotesToFolder, useCreateNote } from '../queries';
-import { SHORTCUT_LABELS } from '../hooks/useKeyboardShortcuts';
+import { useNavigate, useLocation } from '@tanstack/react-router';
+import { format, isToday, isYesterday, isThisWeek } from 'date-fns';
+import { useFolders, useCreateFolder, useDeleteFolder, useUpdateNote, useDeleteNote, useMoveNotesToFolder, useCreateNote, useEvents, useBrainMaps } from '../queries';
 import { isSupabaseConfigured } from '../services/supabase';
 import type { Note } from '../types';
 import type { User } from '@supabase/supabase-js';
+
+function formatNoteDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  if (isToday(date)) return format(date, 'h:mm a');
+  if (isYesterday(date)) return 'Yesterday';
+  if (isThisWeek(date)) return format(date, 'EEEE');
+  return format(date, 'M/d/yy');
+}
 
 interface SidebarProps {
   notes: Note[];
@@ -36,43 +45,76 @@ export default function Sidebar({
   user,
   onSignOut,
 }: SidebarProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const { data: folders = [] } = useFolders();
+  const { data: events = [] } = useEvents();
+  const { data: brainMaps = [] } = useBrainMaps();
   const createFolder = useCreateFolder();
+  const deleteFolder = useDeleteFolder();
   const updateNote = useUpdateNote();
   const deleteNote = useDeleteNote();
   const moveNote = useMoveNotesToFolder();
   const createNote = useCreateNote();
 
-  // Context menu state
+  const pendingEventsCount = events.filter(e => e.status !== 'completed').length;
+  const isEventsPage = location.pathname === '/events';
+  const isCalendarPage = location.pathname === '/calendar';
+  const isBrainMapsPage = location.pathname.startsWith('/brain-maps');
+  const isDayTrackerPage = location.pathname === '/day-tracker';
+
   const [contextMenu, setContextMenu] = useState<{ noteId: string; x: number; y: number } | null>(null);
+  const [folderContextMenu, setFolderContextMenu] = useState<{ folderId: string; x: number; y: number } | null>(null);
   const [showMoveSubmenu, setShowMoveSubmenu] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
+  const folderContextMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close context menu when clicking outside
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
         setContextMenu(null);
         setShowMoveSubmenu(false);
       }
+      if (folderContextMenuRef.current && !folderContextMenuRef.current.contains(e.target as Node)) {
+        setFolderContextMenu(null);
+      }
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const handleContextMenu = (e: React.MouseEvent, noteId: string) => {
-    e.preventDefault();
-    setContextMenu({ noteId, x: e.clientX, y: e.clientY });
-    setShowMoveSubmenu(false);
+  const filteredNotes = searchQuery
+    ? notes.filter(note =>
+        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        note.content.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : notes;
+
+  const sortedNotes = [...filteredNotes].sort((a, b) => {
+    if (a.is_pinned && !b.is_pinned) return -1;
+    if (!a.is_pinned && b.is_pinned) return 1;
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+  });
+
+  const handleCreateFolder = () => {
+    const name = prompt('Folder name:');
+    if (name?.trim()) createFolder.mutate({ name: name.trim() });
+  };
+
+  const handleDeleteFolder = () => {
+    if (folderContextMenu && confirm('Delete this folder?')) {
+      deleteFolder.mutate(folderContextMenu.folderId);
+      if (selectedFolderId === folderContextMenu.folderId) onSelectFolder(null);
+    }
+    setFolderContextMenu(null);
   };
 
   const getContextNote = () => notes.find(n => n.id === contextMenu?.noteId);
 
   const handleTogglePin = () => {
     const note = getContextNote();
-    if (note) {
-      updateNote.mutate({ id: note.id, data: { is_pinned: !note.is_pinned } });
-    }
+    if (note) updateNote.mutate({ id: note.id, data: { is_pinned: !note.is_pinned } });
     setContextMenu(null);
   };
 
@@ -89,175 +131,173 @@ export default function Sidebar({
   };
 
   const handleMoveToFolder = (folderId: string | null) => {
-    if (contextMenu) {
-      moveNote.mutate({ noteIds: [contextMenu.noteId], folderId });
-    }
+    if (contextMenu) moveNote.mutate({ noteIds: [contextMenu.noteId], folderId });
     setContextMenu(null);
     setShowMoveSubmenu(false);
   };
 
   const handleDeleteNote = () => {
-    if (contextMenu && confirm('Are you sure you want to delete this note?')) {
-      deleteNote.mutate(contextMenu.noteId);
-    }
+    if (contextMenu && confirm('Delete this note?')) deleteNote.mutate(contextMenu.noteId);
     setContextMenu(null);
-  };
-
-  // Filter notes by search
-  const filteredNotes = searchQuery
-    ? notes.filter(
-        (note) =>
-          note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          note.content.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : notes;
-
-  // Sort: pinned first, then by updated_at
-  const sortedNotes = [...filteredNotes].sort((a, b) => {
-    if (a.is_pinned && !b.is_pinned) return -1;
-    if (!a.is_pinned && b.is_pinned) return 1;
-    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-  });
-
-  const handleCreateFolder = () => {
-    const name = prompt('Folder name:');
-    if (name?.trim()) {
-      createFolder.mutate({ name: name.trim() });
-    }
   };
 
   return (
     <aside className="sidebar">
-      {/* Header */}
-      <div className="sidebar-header">
-        <div className="workspace-selector">
-          <span className="workspace-icon">V</span>
-          <span className="workspace-name">Voyena</span>
-        </div>
-      </div>
-
-      {/* Search */}
       <div className="sidebar-search">
         <input
           ref={searchInputRef}
           type="text"
-          placeholder={`Search... ${SHORTCUT_LABELS.search}`}
+          placeholder="Search"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="search-input"
         />
       </div>
 
-      {/* Navigation */}
       <nav className="sidebar-nav">
-        {/* New Note Button */}
-        <button className="nav-item new-note" onClick={onCreateNote}>
-          <span className="nav-icon">+</span>
-          <span>New Note</span>
-          <span className="shortcut">{SHORTCUT_LABELS.newNote}</span>
+        <button className="sidebar-action" onClick={onCreateNote}>
+          NEW NOTE
         </button>
 
-        {/* Folders Section */}
-        <div className="nav-section">
-          <div className="nav-section-header">
-            <span>Folders</span>
-            <button className="add-button" onClick={handleCreateFolder} title="New Folder">
-              +
-            </button>
+        {/* Library Section */}
+        <div className="sidebar-section">
+          <div className="sidebar-label">
+            <span>LIBRARY</span>
           </div>
+          <button
+            className={`sidebar-item ${selectedFolderId === null && !isEventsPage && !isCalendarPage && !isBrainMapsPage && !isDayTrackerPage ? 'active' : ''}`}
+            onClick={() => { onSelectFolder(null); navigate({ to: '/' }); }}
+          >
+            <span>All Notes</span>
+            <span className="count">{notes.length}</span>
+          </button>
+        </div>
 
-          <div className="folders-list">
-            {/* All Notes */}
-            <button
-              className={`folder-item ${selectedFolderId === null ? 'selected' : ''}`}
-              onClick={() => onSelectFolder(null)}
-            >
-              <span className="folder-icon">/</span>
-              <span>All Notes</span>
-              <span className="count">{notes.length}</span>
-            </button>
-
-            {/* User Folders */}
+        {/* Folders Section - Only show if there are folders */}
+        {folders.length > 0 && (
+          <div className="sidebar-section">
+            <div className="sidebar-label">
+              <span>FOLDERS</span>
+              <button onClick={handleCreateFolder}>+</button>
+            </div>
             {folders.map((folder) => (
               <button
                 key={folder.id}
-                className={`folder-item ${selectedFolderId === folder.id ? 'selected' : ''}`}
+                className={`sidebar-item ${selectedFolderId === folder.id ? 'active' : ''}`}
                 onClick={() => onSelectFolder(folder.id)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setFolderContextMenu({ folderId: folder.id, x: e.clientX, y: e.clientY });
+                  setContextMenu(null);
+                }}
               >
-                <span className="folder-icon">{folder.icon || '/'}</span>
-                <span>{folder.name}</span>
+                {folder.name}
               </button>
             ))}
           </div>
-        </div>
+        )}
 
-        {/* Notes Section */}
-        <div className="nav-section">
-          <div className="nav-section-header">
-            <span>Notes</span>
-            <span className="note-count">{sortedNotes.length}</span>
+        {/* Create Folder button when no folders exist */}
+        {folders.length === 0 && (
+          <div className="sidebar-section">
+            <button className="sidebar-item sidebar-item-muted" onClick={handleCreateFolder}>
+              <span>+ Create Folder</span>
+            </button>
           </div>
+        )}
 
-          <div className="notes-list">
-            {isLoading ? (
-              <div className="loading-notes">Loading...</div>
-            ) : sortedNotes.length === 0 ? (
-              <div className="empty-notes">
-                {searchQuery ? 'No matching notes' : 'No notes yet'}
-              </div>
-            ) : (
-              sortedNotes.map((note) => (
-                <button
-                  key={note.id}
-                  className={`note-item ${selectedNoteId === note.id ? 'selected' : ''} ${note.is_pinned ? 'pinned' : ''}`}
-                  onClick={() => onSelectNote(note.id)}
-                  onContextMenu={(e) => handleContextMenu(e, note.id)}
-                >
-                  <div className="note-info">
-                    <span className="note-title">{note.title || 'Untitled'}</span>
-                    <span className="note-preview">
-                      {stripHtml(note.content).slice(0, 50) || 'Empty note'}
-                    </span>
-                  </div>
-                  {note.is_pinned && <span className="pin-indicator">*</span>}
-                </button>
-              ))
-            )}
+        {/* Tools Section */}
+        <div className="sidebar-section">
+          <div className="sidebar-label">
+            <span>TOOLS</span>
           </div>
-        </div>
-      </nav>
-
-      {/* Footer */}
-      <div className="sidebar-footer">
-        <button className="settings-button" onClick={onOpenSettings}>
-          <span>Settings</span>
-          <span className="shortcut">{SHORTCUT_LABELS.settings}</span>
-        </button>
-      </div>
-
-      {/* User Menu */}
-      {isSupabaseConfigured && user && (
-        <div className="user-menu">
-          <div className="user-info">
-            <div className="user-avatar">
-              {getInitials(user.email || 'U')}
-            </div>
-            <div className="user-details">
-              <div className="user-name">
-                {user.email?.split('@')[0] || 'User'}
-              </div>
-              <div className="user-email">
-                {user.email}
-              </div>
-            </div>
-          </div>
-          <button className="signout-button" onClick={onSignOut}>
-            Sign Out
+          <button
+            className={`sidebar-item ${isEventsPage ? 'active' : ''}`}
+            onClick={() => navigate({ to: '/events' })}
+          >
+            <span>Events</span>
+            {pendingEventsCount > 0 && <span className="badge">{pendingEventsCount}</span>}
+          </button>
+          <button
+            className={`sidebar-item ${isCalendarPage ? 'active' : ''}`}
+            onClick={() => navigate({ to: '/calendar' })}
+          >
+            <span>Calendar</span>
+          </button>
+          <button
+            className={`sidebar-item ${isBrainMapsPage ? 'active' : ''}`}
+            onClick={() => navigate({ to: '/brain-maps' })}
+          >
+            <span>Brain Maps</span>
+            {brainMaps.length > 0 && <span className="count">{brainMaps.length}</span>}
+          </button>
+          <button
+            className={`sidebar-item ${isDayTrackerPage ? 'active' : ''}`}
+            onClick={() => navigate({ to: '/day-tracker' })}
+          >
+            <span>Day Tracker</span>
           </button>
         </div>
-      )}
 
-      {/* Context Menu */}
+        {/* Notes Section - Only show if there are notes or searching */}
+        {(sortedNotes.length > 0 || searchQuery || isLoading) && (
+          <div className="sidebar-section sidebar-notes">
+            <div className="sidebar-label">
+              <span>RECENT NOTES</span>
+              {sortedNotes.length > 0 && <span className="count">{sortedNotes.length}</span>}
+            </div>
+
+            <div className="notes-list">
+              {isLoading ? (
+                <div className="sidebar-empty">Loading...</div>
+              ) : sortedNotes.length === 0 && searchQuery ? (
+                <div className="sidebar-empty">No matches</div>
+              ) : (
+                sortedNotes.map((note) => {
+                  const content = stripHtml(note.content);
+                  const dateStr = formatNoteDate(note.updated_at);
+
+                  return (
+                    <button
+                      key={note.id}
+                      className={`note-item ${selectedNoteId === note.id ? 'active' : ''} ${note.is_pinned ? 'pinned' : ''}`}
+                      onClick={() => onSelectNote(note.id)}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        setContextMenu({ noteId: note.id, x: e.clientX, y: e.clientY });
+                        setFolderContextMenu(null);
+                        setShowMoveSubmenu(false);
+                      }}
+                    >
+                      <span className="note-title">{note.title || 'Untitled'}</span>
+                      <div className="note-meta">
+                        <span className="note-date">{dateStr}</span>
+                        <span className="note-snippet">{content.slice(0, 40) || 'No additional text'}</span>
+                      </div>
+                      {content.length > 40 && (
+                        <p className="note-preview">{content.slice(40, 120)}</p>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+      </nav>
+
+      <footer className="sidebar-footer">
+        <button className="sidebar-action" onClick={onOpenSettings}>
+          SETTINGS
+        </button>
+
+        {isSupabaseConfigured && user && (
+          <div className="sidebar-user">
+            <span>{user.email?.split('@')[0]}</span>
+            <button onClick={onSignOut}>Sign out</button>
+          </div>
+        )}
+      </footer>
+
       {contextMenu && (
         <div
           ref={contextMenuRef}
@@ -265,46 +305,36 @@ export default function Sidebar({
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
           <button onClick={handleTogglePin}>
-            {getContextNote()?.is_pinned ? 'Unpin' : 'Pin to top'}
+            {getContextNote()?.is_pinned ? 'UNPIN' : 'PIN'}
           </button>
-          <button onClick={handleDuplicate}>
-            Duplicate
-          </button>
-          <button onClick={() => setShowMoveSubmenu(!showMoveSubmenu)}>
-            Move to folder
-          </button>
+          <button onClick={handleDuplicate}>DUPLICATE</button>
+          <button onClick={() => setShowMoveSubmenu(!showMoveSubmenu)}>MOVE TO</button>
           {showMoveSubmenu && (
             <div className="context-submenu">
-              <button onClick={() => handleMoveToFolder(null)}>
-                All Notes
-              </button>
-              {folders.map((folder) => (
-                <button key={folder.id} onClick={() => handleMoveToFolder(folder.id)}>
-                  {folder.name}
-                </button>
+              <button onClick={() => handleMoveToFolder(null)}>All Notes</button>
+              {folders.map((f) => (
+                <button key={f.id} onClick={() => handleMoveToFolder(f.id)}>{f.name}</button>
               ))}
             </div>
           )}
-          <div className="context-divider" />
-          <button onClick={handleDeleteNote} className="danger">
-            Delete
-          </button>
+          <hr />
+          <button className="danger" onClick={handleDeleteNote}>DELETE</button>
+        </div>
+      )}
+
+      {folderContextMenu && (
+        <div
+          ref={folderContextMenuRef}
+          className="context-menu"
+          style={{ top: folderContextMenu.y, left: folderContextMenu.x }}
+        >
+          <button className="danger" onClick={handleDeleteFolder}>DELETE FOLDER</button>
         </div>
       )}
     </aside>
   );
 }
 
-// Get initials from name or email
-function getInitials(name: string): string {
-  const parts = name.split(/[@\s]+/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
-}
-
-// Helper to strip HTML for preview
 function stripHtml(html: string): string {
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
