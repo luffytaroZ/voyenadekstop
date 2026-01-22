@@ -271,10 +271,9 @@ export default function Sidebar({
                       <span className="note-title">{note.title || 'Untitled'}</span>
                       <div className="note-meta">
                         <span className="note-date">{dateStr}</span>
-                        <span className="note-snippet">{content.slice(0, 40) || 'No additional text'}</span>
                       </div>
-                      {content.length > 40 && (
-                        <p className="note-preview">{content.slice(40, 120)}</p>
+                      {content && (
+                        <p className="note-preview">{content}</p>
                       )}
                     </button>
                   );
