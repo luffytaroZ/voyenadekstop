@@ -619,7 +619,7 @@ fn row_to_brain_map(row: &rusqlite::Row) -> rusqlite::Result<BrainMap> {
 }
 
 fn row_to_brain_map_node(row: &rusqlite::Row) -> rusqlite::Result<BrainMapNode> {
-    let is_collapsed: i32 = row.get(13)?;
+    let is_collapsed: i32 = row.get(14)?;
     Ok(BrainMapNode {
         id: row.get(0)?,
         brain_map_id: row.get(1)?,
@@ -634,10 +634,11 @@ fn row_to_brain_map_node(row: &rusqlite::Row) -> rusqlite::Result<BrainMapNode> 
         icon: row.get(10)?,
         linked_note_id: row.get(11)?,
         linked_folder_id: row.get(12)?,
+        linked_event_id: row.get(13)?,
         is_collapsed: is_collapsed != 0,
-        layer: row.get(14)?,
-        created_at: row.get(15)?,
-        updated_at: row.get(16)?,
+        layer: row.get(15)?,
+        created_at: row.get(16)?,
+        updated_at: row.get(17)?,
     })
 }
 
@@ -698,7 +699,7 @@ pub fn get_brain_map(db: State<Database>, id: String) -> Result<Option<BrainMapW
             .prepare(
                 "SELECT id, brain_map_id, parent_node_id, label, description,
                         x, y, color, shape, size, icon, linked_note_id, linked_folder_id,
-                        is_collapsed, layer, created_at, updated_at
+                        linked_event_id, is_collapsed, layer, created_at, updated_at
                  FROM brain_map_nodes WHERE brain_map_id = ?1
                  ORDER BY layer ASC, created_at ASC",
             )
@@ -790,6 +791,7 @@ pub fn create_brain_map(db: State<Database>, data: BrainMapCreate) -> Result<Bra
         icon: None,
         linked_note_id: None,
         linked_folder_id: None,
+        linked_event_id: None,
         is_collapsed: false,
         layer: 0,
         created_at: now.clone(),
@@ -799,8 +801,8 @@ pub fn create_brain_map(db: State<Database>, data: BrainMapCreate) -> Result<Bra
     conn.execute(
         "INSERT INTO brain_map_nodes (id, brain_map_id, parent_node_id, label, description,
                                       x, y, color, shape, size, icon, linked_note_id, linked_folder_id,
-                                      is_collapsed, layer, created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
+                                      linked_event_id, is_collapsed, layer, created_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
         params![
             center_node.id,
             center_node.brain_map_id,
@@ -815,6 +817,7 @@ pub fn create_brain_map(db: State<Database>, data: BrainMapCreate) -> Result<Bra
             center_node.icon,
             center_node.linked_note_id,
             center_node.linked_folder_id,
+            center_node.linked_event_id,
             center_node.is_collapsed as i32,
             center_node.layer,
             center_node.created_at,
@@ -938,6 +941,7 @@ pub fn create_brain_map_node(db: State<Database>, data: BrainMapNodeCreate) -> R
         icon: data.icon,
         linked_note_id: data.linked_note_id,
         linked_folder_id: data.linked_folder_id,
+        linked_event_id: data.linked_event_id,
         is_collapsed: false,
         layer,
         created_at: now.clone(),
@@ -947,8 +951,8 @@ pub fn create_brain_map_node(db: State<Database>, data: BrainMapNodeCreate) -> R
     conn.execute(
         "INSERT INTO brain_map_nodes (id, brain_map_id, parent_node_id, label, description,
                                       x, y, color, shape, size, icon, linked_note_id, linked_folder_id,
-                                      is_collapsed, layer, created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
+                                      linked_event_id, is_collapsed, layer, created_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
         params![
             node.id,
             node.brain_map_id,
@@ -963,6 +967,7 @@ pub fn create_brain_map_node(db: State<Database>, data: BrainMapNodeCreate) -> R
             node.icon,
             node.linked_note_id,
             node.linked_folder_id,
+            node.linked_event_id,
             node.is_collapsed as i32,
             node.layer,
             node.created_at,
@@ -990,7 +995,7 @@ pub fn update_brain_map_node(db: State<Database>, id: String, data: BrainMapNode
         .prepare(
             "SELECT id, brain_map_id, parent_node_id, label, description,
                     x, y, color, shape, size, icon, linked_note_id, linked_folder_id,
-                    is_collapsed, layer, created_at, updated_at
+                    linked_event_id, is_collapsed, layer, created_at, updated_at
              FROM brain_map_nodes WHERE id = ?1",
         )
         .map_err(|e| e.to_string())?;
@@ -1013,6 +1018,7 @@ pub fn update_brain_map_node(db: State<Database>, id: String, data: BrainMapNode
         icon: data.icon.or(current.icon),
         linked_note_id: data.linked_note_id.or(current.linked_note_id),
         linked_folder_id: data.linked_folder_id.or(current.linked_folder_id),
+        linked_event_id: data.linked_event_id.or(current.linked_event_id),
         is_collapsed: data.is_collapsed.unwrap_or(current.is_collapsed),
         layer: current.layer,
         created_at: current.created_at,
@@ -1022,8 +1028,9 @@ pub fn update_brain_map_node(db: State<Database>, id: String, data: BrainMapNode
     conn.execute(
         "UPDATE brain_map_nodes SET parent_node_id = ?1, label = ?2, description = ?3,
                                    x = ?4, y = ?5, color = ?6, shape = ?7, size = ?8, icon = ?9,
-                                   linked_note_id = ?10, linked_folder_id = ?11, is_collapsed = ?12, updated_at = ?13
-         WHERE id = ?14",
+                                   linked_note_id = ?10, linked_folder_id = ?11, linked_event_id = ?12,
+                                   is_collapsed = ?13, updated_at = ?14
+         WHERE id = ?15",
         params![
             updated.parent_node_id,
             updated.label,
@@ -1036,6 +1043,7 @@ pub fn update_brain_map_node(db: State<Database>, id: String, data: BrainMapNode
             updated.icon,
             updated.linked_note_id,
             updated.linked_folder_id,
+            updated.linked_event_id,
             updated.is_collapsed as i32,
             updated.updated_at,
             updated.id,

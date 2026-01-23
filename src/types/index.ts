@@ -214,6 +214,7 @@ export interface BrainMapNode {
   icon?: string | null;
   linked_note_id?: string | null;
   linked_folder_id?: string | null;
+  linked_event_id?: string | null;
   is_collapsed: boolean;
   layer: number;
   created_at: string;
@@ -233,6 +234,7 @@ export interface BrainMapNodeCreate {
   icon?: string;
   linked_note_id?: string;
   linked_folder_id?: string;
+  linked_event_id?: string;
 }
 
 export interface BrainMapNodeUpdate {
@@ -247,6 +249,7 @@ export interface BrainMapNodeUpdate {
   icon?: string | null;
   linked_note_id?: string | null;
   linked_folder_id?: string | null;
+  linked_event_id?: string | null;
   is_collapsed?: boolean;
 }
 

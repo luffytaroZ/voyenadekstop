@@ -189,6 +189,7 @@ pub struct BrainMapNode {
     pub icon: Option<String>,
     pub linked_note_id: Option<String>,
     pub linked_folder_id: Option<String>,
+    pub linked_event_id: Option<String>,
     pub is_collapsed: bool,
     pub layer: i32,
     pub created_at: String,
@@ -209,6 +210,7 @@ pub struct BrainMapNodeCreate {
     pub icon: Option<String>,
     pub linked_note_id: Option<String>,
     pub linked_folder_id: Option<String>,
+    pub linked_event_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -224,6 +226,7 @@ pub struct BrainMapNodeUpdate {
     pub icon: Option<String>,
     pub linked_note_id: Option<String>,
     pub linked_folder_id: Option<String>,
+    pub linked_event_id: Option<String>,
     pub is_collapsed: Option<bool>,
 }
 

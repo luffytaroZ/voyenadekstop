@@ -50,6 +50,7 @@ export default function NoteEditor({ note, onNoteDeleted }: NoteEditorProps) {
   const [showMoveMenu, setShowMoveMenu] = useState(false);
   const [newTag, setNewTag] = useState('');
   const [showTagInput, setShowTagInput] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -204,11 +205,21 @@ export default function NoteEditor({ note, onNoteDeleted }: NoteEditorProps) {
   };
 
   const stats = useMemo(() => {
-    if (!editor) return { words: 0, chars: 0 };
-    return {
-      words: editor.storage.characterCount?.words() || 0,
-      chars: editor.storage.characterCount?.characters() || 0,
-    };
+    if (!editor) return { words: 0, chars: 0, readingTime: 0, paragraphs: 0, sentences: 0 };
+    const words = editor.storage.characterCount?.words() || 0;
+    const chars = editor.storage.characterCount?.characters() || 0;
+    const text = editor.getText();
+
+    // Calculate reading time (average 200 words per minute)
+    const readingTime = Math.max(1, Math.ceil(words / 200));
+
+    // Count paragraphs (non-empty lines)
+    const paragraphs = text.split(/\n\n+/).filter(p => p.trim()).length;
+
+    // Count sentences (rough estimate)
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim()).length;
+
+    return { words, chars, readingTime, paragraphs, sentences };
   }, [editor?.storage.characterCount?.words(), editor?.storage.characterCount?.characters()]);
 
   if (!editor) return null;
@@ -360,9 +371,73 @@ export default function NoteEditor({ note, onNoteDeleted }: NoteEditorProps) {
         <EditorContent editor={editor} />
       </div>
 
+      {/* Details Panel */}
+      {showDetails && (
+        <div className="note-details-panel">
+          <div className="details-section">
+            <h4>Statistics</h4>
+            <div className="details-grid">
+              <div className="detail-item">
+                <span className="detail-value">{stats.words}</span>
+                <span className="detail-label">Words</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-value">{stats.chars}</span>
+                <span className="detail-label">Characters</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-value">{stats.readingTime}</span>
+                <span className="detail-label">Min read</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-value">{stats.paragraphs}</span>
+                <span className="detail-label">Paragraphs</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-value">{stats.sentences}</span>
+                <span className="detail-label">Sentences</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="details-section">
+            <h4>Info</h4>
+            <div className="details-info">
+              <div className="info-row">
+                <span className="info-label">Created</span>
+                <span className="info-value">{format(new Date(note.created_at), 'MMM d, yyyy · h:mm a')}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Modified</span>
+                <span className="info-value">{format(new Date(note.updated_at), 'MMM d, yyyy · h:mm a')}</span>
+              </div>
+              {note.folder_id && (
+                <div className="info-row">
+                  <span className="info-label">Folder</span>
+                  <span className="info-value">{folders.find(f => f.id === note.folder_id)?.name || 'Unknown'}</span>
+                </div>
+              )}
+              {note.tags && note.tags.length > 0 && (
+                <div className="info-row">
+                  <span className="info-label">Tags</span>
+                  <span className="info-value">{note.tags.length} tag{note.tags.length !== 1 ? 's' : ''}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <footer className="editor-footer">
-        {stats.words} words · {stats.chars} characters
+        <span>{stats.words} words · {stats.chars} characters</span>
+        <button
+          className={`details-toggle ${showDetails ? 'active' : ''}`}
+          onClick={() => setShowDetails(!showDetails)}
+          title="Note details"
+        >
+          ℹ
+        </button>
       </footer>
     </div>
   );

@@ -122,6 +122,7 @@ impl Database {
                 icon TEXT,
                 linked_note_id TEXT,
                 linked_folder_id TEXT,
+                linked_event_id TEXT,
                 is_collapsed INTEGER NOT NULL DEFAULT 0,
                 layer INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT NOT NULL,
@@ -129,7 +130,8 @@ impl Database {
                 FOREIGN KEY (brain_map_id) REFERENCES brain_maps(id) ON DELETE CASCADE,
                 FOREIGN KEY (parent_node_id) REFERENCES brain_map_nodes(id) ON DELETE SET NULL,
                 FOREIGN KEY (linked_note_id) REFERENCES notes(id) ON DELETE SET NULL,
-                FOREIGN KEY (linked_folder_id) REFERENCES folders(id) ON DELETE SET NULL
+                FOREIGN KEY (linked_folder_id) REFERENCES folders(id) ON DELETE SET NULL,
+                FOREIGN KEY (linked_event_id) REFERENCES events(id) ON DELETE SET NULL
             );
 
             -- Brain Map Connections table (for non-hierarchical links)
@@ -161,6 +163,27 @@ impl Database {
             CREATE INDEX IF NOT EXISTS idx_brain_map_connections_map ON brain_map_connections(brain_map_id);
             "#,
         )?;
+
+        // Run migrations for existing databases
+        Self::run_migrations(conn)?;
+
+        Ok(())
+    }
+
+    fn run_migrations(conn: &Connection) -> SqliteResult<()> {
+        // Migration: Add linked_event_id column to brain_map_nodes if it doesn't exist
+        let columns: Vec<String> = conn
+            .prepare("PRAGMA table_info(brain_map_nodes)")?
+            .query_map([], |row| row.get::<_, String>(1))?
+            .filter_map(|r| r.ok())
+            .collect();
+
+        if !columns.contains(&"linked_event_id".to_string()) {
+            conn.execute(
+                "ALTER TABLE brain_map_nodes ADD COLUMN linked_event_id TEXT REFERENCES events(id) ON DELETE SET NULL",
+                [],
+            )?;
+        }
 
         Ok(())
     }

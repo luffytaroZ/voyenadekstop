@@ -1,135 +1,248 @@
 /* ========================================
-   Brain Map Page Layout
+   Brain Map Page - Yeezy Style
+   Clean, minimal, neutral palette
    ======================================== */
+
+/* Yeezy Palette */
+:root {
+  --yeezy-bg: #0a0a0a;
+  --yeezy-surface: #141414;
+  --yeezy-elevated: #1a1a1a;
+  --yeezy-card: #1f1f1f;
+  --yeezy-text: #F5F5F0;
+  --yeezy-secondary: #8A8A8A;
+  --yeezy-muted: #5A5A5A;
+  --yeezy-divider: rgba(255, 255, 255, 0.08);
+  --yeezy-accent: #E5E5E0;
+}
+
 .brain-map-page {
   display: flex;
   flex: 1;
   height: 100%;
   overflow: hidden;
-  background: var(--bg-primary);
+  background: var(--yeezy-bg);
 }
 
 /* ========================================
-   Brain Map Sidebar
+   Brain Map Sidebar - Clean Glass
    ======================================== */
 .brain-map-sidebar {
-  width: 280px;
+  width: 300px;
   height: 100%;
-  background: var(--bg-sidebar);
-  border-right: 1px solid var(--border-color);
+  background: var(--yeezy-surface);
+  border-right: 1px solid var(--yeezy-divider);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .brain-map-sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 16px 12px;
-  border-bottom: 1px solid var(--border-color);
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--yeezy-divider);
 }
 
 .brain-map-sidebar-header h2 {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.01em;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--yeezy-secondary);
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 .brain-map-sidebar-header .btn-icon {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--primary);
-  color: var(--primary-text);
-  border-radius: var(--radius-md);
+  background: var(--yeezy-elevated);
+  color: var(--yeezy-text);
+  border-radius: 8px;
   font-size: 18px;
-  font-weight: 400;
+  font-weight: 300;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
+  border: 1px solid var(--yeezy-divider);
 }
 
 .brain-map-sidebar-header .btn-icon:hover {
-  background: var(--primary-hover);
-  transform: scale(1.05);
+  background: var(--yeezy-card);
+  border-color: var(--yeezy-muted);
 }
 
 .brain-map-search {
-  padding: 12px 16px;
+  padding: 20px 24px;
 }
 
 .brain-map-search input {
   width: 100%;
-  padding: 10px 12px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
+  padding: 14px 18px;
+  background: var(--yeezy-bg);
+  border: 1px solid var(--yeezy-divider);
+  border-radius: 8px;
+  color: var(--yeezy-text);
   font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 0.3px;
+  transition: all 0.2s ease;
 }
 
 .brain-map-search input:focus {
-  border-color: var(--primary);
+  border-color: var(--yeezy-muted);
+  outline: none;
 }
 
 .brain-map-search input::placeholder {
-  color: var(--text-placeholder);
+  color: var(--yeezy-muted);
 }
 
 .brain-map-list {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 12px;
+  padding: 12px 20px;
+}
+
+.brain-map-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.brain-map-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.brain-map-list::-webkit-scrollbar-thumb {
+  background: var(--yeezy-muted);
+  border-radius: 2px;
 }
 
 .brain-map-list-empty {
   text-align: center;
-  padding: 40px 20px;
-  color: var(--text-muted);
-  font-size: 13px;
+  padding: 60px 24px;
+  color: var(--yeezy-muted);
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 0.5px;
 }
 
 .brain-map-list-empty button {
-  margin-top: 16px;
-  padding: 10px 20px;
-  background: var(--primary);
-  color: var(--primary-text);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 500;
+  margin-top: 24px;
+  padding: 14px 28px;
+  background: var(--yeezy-elevated);
+  color: var(--yeezy-text);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
+  border: 1px solid var(--yeezy-divider);
 }
 
 .brain-map-list-empty button:hover {
-  background: var(--primary-hover);
+  background: var(--yeezy-card);
+  border-color: var(--yeezy-muted);
 }
 
+/* Show All Card */
+.brain-map-show-all {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  background: var(--yeezy-elevated);
+  border: 1px solid var(--yeezy-divider);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.brain-map-show-all:hover {
+  border-color: var(--yeezy-muted);
+}
+
+.brain-map-show-all.active {
+  border-color: var(--yeezy-secondary);
+  background: var(--yeezy-card);
+}
+
+.brain-map-show-all-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--yeezy-surface);
+  border-radius: 10px;
+  font-size: 18px;
+  color: var(--yeezy-text);
+  border: 1px solid var(--yeezy-divider);
+}
+
+.brain-map-show-all-content {
+  flex: 1;
+}
+
+.brain-map-show-all-title {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--yeezy-text);
+  letter-spacing: 0.3px;
+}
+
+.brain-map-show-all-sub {
+  font-size: 11px;
+  color: var(--yeezy-muted);
+  margin-top: 4px;
+  font-weight: 300;
+}
+
+.brain-map-show-all-arrow {
+  font-size: 16px;
+  color: var(--yeezy-muted);
+  transition: transform 0.2s ease;
+}
+
+.brain-map-show-all:hover .brain-map-show-all-arrow {
+  transform: translateX(4px);
+  color: var(--yeezy-secondary);
+}
+
+/* List Items */
 .brain-map-list-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: var(--radius-md);
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all var(--transition-fast);
-  position: relative;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+  background: transparent;
+  border: 1px solid transparent;
 }
 
 .brain-map-list-item:hover {
-  background: var(--bg-hover);
+  background: var(--yeezy-elevated);
+  border-color: var(--yeezy-divider);
 }
 
 .brain-map-list-item.active {
-  background: var(--primary-light);
+  background: var(--yeezy-card);
+  border-color: var(--yeezy-muted);
 }
 
 .brain-map-list-item-icon {
   font-size: 24px;
   line-height: 1;
+  opacity: 0.8;
 }
 
 .brain-map-list-item-content {
@@ -138,34 +251,36 @@
 }
 
 .brain-map-list-item-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--yeezy-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: 0.2px;
 }
 
 .brain-map-list-item-meta {
   font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 2px;
+  color: var(--yeezy-muted);
+  margin-top: 4px;
+  font-weight: 300;
 }
 
 .brain-map-list-item-delete {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: var(--yeezy-muted);
   font-size: 18px;
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
   opacity: 0;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .brain-map-list-item:hover .brain-map-list-item-delete {
@@ -173,122 +288,72 @@
 }
 
 .brain-map-list-item-delete:hover {
-  background: var(--error-light);
-  color: var(--error);
-}
-
-/* Show All Card */
-.brain-map-show-all {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px;
-  margin-bottom: 12px;
-  background: var(--primary);
-  color: var(--primary-text);
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.brain-map-show-all:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-}
-
-.brain-map-show-all.active {
-  box-shadow: 0 0 0 2px var(--primary), 0 0 0 4px var(--bg-primary);
-}
-
-.brain-map-show-all-icon {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary-text);
-  color: var(--primary);
-  border-radius: var(--radius-md);
-  font-size: 18px;
-}
-
-.brain-map-show-all-content {
-  flex: 1;
-}
-
-.brain-map-show-all-title {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
-.brain-map-show-all-sub {
-  font-size: 11px;
-  opacity: 0.7;
-}
-
-.brain-map-show-all-arrow {
-  font-size: 16px;
-  opacity: 0.6;
+  background: rgba(200, 100, 100, 0.15);
+  color: #C88;
 }
 
 /* ========================================
-   Node Inspector
+   Node Inspector Panel
    ======================================== */
 .brain-map-inspector {
-  border-top: 1px solid var(--border-color);
-  padding: 16px;
-  background: var(--bg-secondary);
+  border-top: 1px solid var(--yeezy-divider);
+  padding: 24px;
+  background: var(--yeezy-bg);
 }
 
 .brain-map-inspector h3 {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 9px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  margin-bottom: 16px;
+  letter-spacing: 2px;
+  color: var(--yeezy-muted);
+  margin-bottom: 20px;
 }
 
 .inspector-field {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .inspector-field label {
   display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--yeezy-muted);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
 }
 
 .inspector-field input {
   width: 100%;
-  padding: 8px 12px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
+  padding: 12px 16px;
+  background: var(--yeezy-surface);
+  border: 1px solid var(--yeezy-divider);
+  border-radius: 8px;
+  color: var(--yeezy-text);
   font-size: 13px;
+  font-weight: 300;
+  transition: all 0.2s ease;
 }
 
 .inspector-field input:focus {
-  border-color: var(--primary);
+  border-color: var(--yeezy-muted);
+  outline: none;
 }
 
 .color-picker {
   display: flex;
-  gap: 6px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .color-swatch {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-full);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .color-swatch:hover {
@@ -296,43 +361,42 @@
 }
 
 .color-swatch.active {
-  border-color: var(--text-primary);
-  box-shadow: 0 0 0 2px var(--bg-primary);
+  border-color: var(--yeezy-text);
 }
 
 .inspector-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .inspector-actions button {
   flex: 1;
   min-width: 80px;
-  padding: 8px 12px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 500;
-  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  background: var(--yeezy-elevated);
+  border: 1px solid var(--yeezy-divider);
+  color: var(--yeezy-secondary);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .inspector-actions button:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-dark);
-  color: var(--text-primary);
+  background: var(--yeezy-card);
+  color: var(--yeezy-text);
 }
 
 .inspector-actions button.danger {
-  color: var(--error);
+  color: #C88;
+  border-color: rgba(200, 136, 136, 0.2);
 }
 
 .inspector-actions button.danger:hover {
-  background: var(--error-light);
-  border-color: var(--error);
+  background: rgba(200, 100, 100, 0.1);
 }
 
 /* ========================================
@@ -342,18 +406,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  gap: 8px;
+  padding: 12px 16px;
+  background: var(--yeezy-elevated);
+  border: 1px solid var(--yeezy-divider);
+  border-radius: 8px;
+  gap: 12px;
 }
 
 .linked-note-title {
   flex: 1;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--yeezy-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -361,33 +425,33 @@
 
 .linked-note-actions {
   display: flex;
-  gap: 4px;
+  gap: 8px;
 }
 
 .linked-note-btn {
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 500;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  background: var(--yeezy-surface);
+  border: 1px solid var(--yeezy-divider);
+  color: var(--yeezy-secondary);
+  border-radius: 6px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .linked-note-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: var(--yeezy-card);
+  color: var(--yeezy-text);
 }
 
 .linked-note-btn.danger {
-  color: var(--error);
-  padding: 4px 8px;
+  color: #C88;
 }
 
 .linked-note-btn.danger:hover {
-  background: var(--error-light);
+  background: rgba(200, 100, 100, 0.1);
 }
 
 .note-link-selector {
@@ -396,16 +460,17 @@
 
 .note-link-selector input {
   width: 100%;
-  padding: 8px 12px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
+  padding: 12px 16px;
+  background: var(--yeezy-surface);
+  border: 1px solid var(--yeezy-divider);
+  border-radius: 8px;
+  color: var(--yeezy-text);
   font-size: 13px;
 }
 
 .note-link-selector input:focus {
-  border-color: var(--primary);
+  border-color: var(--yeezy-muted);
+  outline: none;
 }
 
 .note-link-dropdown {
@@ -413,66 +478,67 @@
   top: 100%;
   left: 0;
   right: 0;
-  margin-top: 4px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  max-height: 250px;
+  margin-top: 8px;
+  background: var(--yeezy-surface);
+  border: 1px solid var(--yeezy-divider);
+  border-radius: 10px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  max-height: 260px;
   overflow-y: auto;
-  z-index: 10;
+  z-index: 100;
 }
 
 .note-link-dropdown-header {
   position: sticky;
   top: 0;
-  padding: 8px 12px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  font-size: 10px;
-  font-weight: 600;
+  padding: 12px 16px;
+  background: var(--yeezy-bg);
+  border-bottom: 1px solid var(--yeezy-divider);
+  font-size: 9px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
+  letter-spacing: 2px;
+  color: var(--yeezy-muted);
 }
 
 .note-link-empty {
-  padding: 20px 12px;
+  padding: 28px 16px;
   text-align: center;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--yeezy-muted);
+  font-weight: 300;
 }
 
 .note-link-option {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 14px 16px;
   background: none;
   border: none;
   text-align: left;
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background 0.2s ease;
 }
 
 .note-link-option:hover {
-  background: var(--bg-hover);
+  background: var(--yeezy-elevated);
 }
 
 .note-link-option:not(:last-child) {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--yeezy-divider);
 }
 
 .note-link-title {
   font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
+  font-weight: 400;
+  color: var(--yeezy-text);
 }
 
 .note-link-preview {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--yeezy-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -487,7 +553,9 @@
   flex-direction: column;
   min-width: 0;
   position: relative;
-  background: var(--bg-primary);
+  background: var(--yeezy-bg);
+  height: 100%;
+  overflow: hidden;
 }
 
 .brain-map-empty {
@@ -502,22 +570,44 @@
 
 .brain-map-empty-icon {
   font-size: 80px;
-  margin-bottom: 24px;
-  opacity: 0.8;
+  margin-bottom: 32px;
+  opacity: 0.6;
 }
 
 .brain-map-empty h2 {
   font-size: 24px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 12px;
+  font-weight: 300;
+  color: var(--yeezy-text);
+  margin-bottom: 16px;
+  letter-spacing: 1px;
 }
 
 .brain-map-empty p {
-  font-size: 15px;
-  color: var(--text-secondary);
-  margin-bottom: 24px;
+  font-size: 14px;
+  color: var(--yeezy-muted);
+  margin-bottom: 32px;
   max-width: 400px;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+.btn-primary {
+  padding: 16px 36px;
+  background: var(--yeezy-elevated);
+  color: var(--yeezy-text);
+  border: 1px solid var(--yeezy-divider);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: var(--yeezy-card);
+  border-color: var(--yeezy-muted);
 }
 
 .brain-map-loading {
@@ -526,12 +616,28 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: var(--yeezy-bg);
 }
 
 .brain-map-loading p {
-  margin-top: 16px;
-  color: var(--text-muted);
-  font-size: 14px;
+  margin-top: 20px;
+  color: var(--yeezy-muted);
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 1px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--yeezy-divider);
+  border-top-color: var(--yeezy-secondary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* ========================================
@@ -541,10 +647,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  gap: 16px;
+  padding: 16px 28px;
+  background: var(--yeezy-surface);
+  border-bottom: 1px solid var(--yeezy-divider);
+  gap: 24px;
+  position: relative;
+  z-index: 5;
 }
 
 .brain-map-title {
@@ -555,223 +663,283 @@
 .brain-map-title input {
   width: 100%;
   max-width: 400px;
-  padding: 8px 0;
+  padding: 10px 0;
   background: transparent;
   border: none;
-  color: var(--text-primary);
+  color: var(--yeezy-text);
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 300;
+  letter-spacing: 0.5px;
 }
 
 .brain-map-title input:focus {
   outline: none;
-  border-bottom: 2px solid var(--primary);
+}
+
+.brain-map-title input::placeholder {
+  color: var(--yeezy-muted);
 }
 
 .brain-map-title-text {
   font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-weight: 300;
+  color: var(--yeezy-text);
+  letter-spacing: 0.5px;
 }
 
 .brain-map-title-count {
-  margin-left: 12px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-muted);
+  margin-left: 16px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--yeezy-muted);
+  padding: 6px 14px;
+  background: var(--yeezy-bg);
+  border-radius: 16px;
+  letter-spacing: 0.5px;
 }
 
 .brain-map-toolbar-actions {
   display: flex;
-  gap: 8px;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ========================================
+   Brain Map Filters
+   ======================================== */
+.brain-map-filters {
+  display: flex;
+  gap: 4px;
+  margin-right: 16px;
+  padding: 4px;
+  background: var(--yeezy-bg);
+  border-radius: 10px;
+  border: 1px solid var(--yeezy-divider);
+}
+
+.filter-btn {
+  padding: 10px 18px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  color: var(--yeezy-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  color: var(--yeezy-secondary);
+}
+
+.filter-btn.active {
+  background: var(--yeezy-elevated);
+  color: var(--yeezy-text);
 }
 
 .toolbar-btn {
-  padding: 8px 16px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: var(--radius-md);
+  padding: 12px 22px;
+  background: var(--yeezy-elevated);
+  border: 1px solid var(--yeezy-divider);
+  color: var(--yeezy-secondary);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .toolbar-btn:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-dark);
-  color: var(--text-primary);
+  background: var(--yeezy-card);
+  color: var(--yeezy-text);
 }
 
 .toolbar-btn.active {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--primary-text);
+  background: var(--yeezy-card);
+  border-color: var(--yeezy-muted);
+  color: var(--yeezy-text);
 }
 
 .toolbar-btn.cancel {
-  background: var(--warning-light);
-  border-color: var(--warning);
-  color: var(--warning);
+  background: rgba(200, 180, 100, 0.1);
+  border-color: rgba(200, 180, 100, 0.2);
+  color: #CB8;
+}
+
+.toolbar-btn.cancel:hover {
+  background: rgba(200, 180, 100, 0.15);
 }
 
 /* ========================================
    Status Bar
    ======================================== */
 .brain-map-status {
-  padding: 10px 20px;
-  background: var(--primary-light);
-  color: var(--primary);
-  font-size: 13px;
-  font-weight: 500;
+  padding: 14px 28px;
+  background: var(--yeezy-elevated);
+  color: var(--yeezy-secondary);
+  font-size: 12px;
+  font-weight: 300;
   text-align: center;
-  border-bottom: 1px solid var(--primary);
+  border-bottom: 1px solid var(--yeezy-divider);
+  letter-spacing: 0.5px;
 }
 
 /* ========================================
-   Brain Map Canvas
+   Brain Map Canvas - Yeezy Style
    ======================================== */
-.brain-map-canvas {
+.brain-map-canvas-yeezy {
   flex: 1;
   position: relative;
   overflow: hidden;
   cursor: grab;
-  background:
-    radial-gradient(circle at 50% 50%, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  background: var(--yeezy-bg);
 }
 
-.brain-map-canvas:active {
+.brain-map-canvas-yeezy:active {
   cursor: grabbing;
 }
 
-.brain-map-canvas.adding-mode {
+.brain-map-canvas-yeezy.adding-mode {
   cursor: crosshair;
 }
 
-.brain-map-canvas.connecting-mode {
+.brain-map-canvas-yeezy.connecting-mode {
   cursor: pointer;
 }
 
-.brain-map-canvas svg {
+.brain-map-canvas-yeezy .canvas-svg {
   display: block;
 }
 
-/* Node animations */
-.brain-map-canvas .selection-ring {
-  animation: pulse-ring 2s ease-in-out infinite;
+/* Node effects */
+.node-3d {
+  transition: transform 0.15s ease-out;
 }
 
-@keyframes pulse-ring {
-  0%, 100% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.3;
-    transform: scale(1.05);
-  }
+.node-3d .node-body {
+  transition: all 0.2s ease;
 }
 
-.brain-map-canvas .center-glow {
-  animation: breathe 3s ease-in-out infinite;
+/* Selection ring animation */
+.selection-ring {
+  animation: rotate-ring 12s linear infinite;
 }
 
-@keyframes breathe {
-  0%, 100% {
-    opacity: 0.15;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.25;
-    transform: scale(1.1);
-  }
+@keyframes rotate-ring {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -36; }
 }
 
-/* Connection animations */
-.connection-animated {
-  stroke-dasharray: 8 4;
-  animation: dash-flow 1s linear infinite;
+/* Pulse ring */
+.pulse-ring {
+  animation: pulse-scale 2.5s ease-in-out infinite;
 }
 
-@keyframes dash-flow {
-  from {
-    stroke-dashoffset: 0;
-  }
-  to {
-    stroke-dashoffset: -24;
-  }
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.08); opacity: 0.2; }
 }
 
-/* Node edit input */
-.node-edit-input {
-  box-sizing: border-box;
-  outline: none;
+/* Aura effects */
+.aura-outer {
+  animation: breathe-outer 5s ease-in-out infinite;
 }
 
-/* ========================================
-   Minimap
-   ======================================== */
-.brain-map-minimap {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 12px;
-  box-shadow: var(--shadow-lg);
-  opacity: 0.9;
-  transition: opacity var(--transition-fast);
+.aura-mid {
+  animation: breathe-mid 5s ease-in-out infinite;
 }
 
-.brain-map-minimap:hover {
-  opacity: 1;
+@keyframes breathe-outer {
+  0%, 100% { transform: scale(1); opacity: 0.04; }
+  50% { transform: scale(1.1); opacity: 0.02; }
+}
+
+@keyframes breathe-mid {
+  0%, 100% { transform: scale(1); opacity: 0.08; }
+  50% { transform: scale(1.06); opacity: 0.04; }
+}
+
+/* Connection flow animation */
+.connection-flow {
+  stroke-dasharray: 6 3;
+  animation: flow 1.5s linear infinite;
+}
+
+@keyframes flow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -18; }
 }
 
 /* ========================================
-   Zoom Controls
+   Minimap - Yeezy Style
    ======================================== */
-.brain-map-zoom-controls {
+.brain-map-minimap-yeezy {
   position: absolute;
-  bottom: 20px;
-  left: 20px;
+  bottom: 28px;
+  right: 28px;
+  background: var(--yeezy-surface);
+  border: 1px solid var(--yeezy-divider);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
+}
+
+.brain-map-minimap-yeezy:hover {
+  border-color: var(--yeezy-muted);
+}
+
+/* ========================================
+   Zoom Controls - Yeezy Style
+   ======================================== */
+.brain-map-zoom-yeezy {
+  position: absolute;
+  bottom: 28px;
+  left: 28px;
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  gap: 2px;
+  background: var(--yeezy-surface);
+  border: 1px solid var(--yeezy-divider);
+  border-radius: 12px;
   padding: 6px;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
-.brain-map-zoom-controls button {
-  width: 32px;
-  height: 32px;
+.brain-map-zoom-yeezy button {
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: none;
-  color: var(--text-secondary);
-  font-size: 18px;
+  color: var(--yeezy-secondary);
+  font-size: 16px;
   cursor: pointer;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
-.brain-map-zoom-controls button:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+.brain-map-zoom-yeezy button:hover {
+  background: var(--yeezy-elevated);
+  color: var(--yeezy-text);
 }
 
-.brain-map-zoom-controls span {
-  min-width: 50px;
+.brain-map-zoom-yeezy button:active {
+  transform: scale(0.95);
+}
+
+.brain-map-zoom-yeezy span {
+  min-width: 52px;
   text-align: center;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--yeezy-muted);
+  letter-spacing: 0.5px;
 }
 
 /* ========================================
@@ -785,32 +953,104 @@
     bottom: 0;
     z-index: 100;
     transform: translateX(-100%);
-    transition: transform var(--transition-normal);
+    transition: transform 0.3s ease;
   }
 
   .brain-map-sidebar.open {
     transform: translateX(0);
   }
 
-  .brain-map-minimap {
+  .brain-map-minimap-yeezy {
     display: none;
+  }
+
+  .brain-map-filters {
+    display: none;
+  }
+
+  .brain-map-toolbar {
+    padding: 14px 20px;
   }
 }
 
 /* ========================================
-   Dark Theme Adjustments
+   Legacy support - old class names
    ======================================== */
-[data-theme='dark'] .brain-map-canvas {
-  background:
-    radial-gradient(circle at 50% 50%, #0f0f0f 0%, #000000 100%);
+.brain-map-canvas {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+  background: var(--yeezy-bg);
 }
 
-[data-theme='dark'] .brain-map-toolbar {
-  background: #0a0a0a;
+.brain-map-canvas-3d {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+  background: var(--yeezy-bg);
 }
 
-[data-theme='dark'] .brain-map-minimap,
-[data-theme='dark'] .brain-map-zoom-controls {
-  background: #0a0a0a;
-  border-color: #2a2a24;
+.brain-map-canvas-3d:active,
+.brain-map-canvas:active {
+  cursor: grabbing;
+}
+
+.brain-map-minimap,
+.brain-map-minimap-3d {
+  position: absolute;
+  bottom: 28px;
+  right: 28px;
+  background: var(--yeezy-surface);
+  border: 1px solid var(--yeezy-divider);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+.brain-map-zoom-controls,
+.brain-map-zoom-3d {
+  position: absolute;
+  bottom: 28px;
+  left: 28px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--yeezy-surface);
+  border: 1px solid var(--yeezy-divider);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+.brain-map-zoom-controls button,
+.brain-map-zoom-3d button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--yeezy-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.brain-map-zoom-controls button:hover,
+.brain-map-zoom-3d button:hover {
+  background: var(--yeezy-elevated);
+  color: var(--yeezy-text);
+}
+
+.brain-map-zoom-controls span,
+.brain-map-zoom-3d span {
+  min-width: 52px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--yeezy-muted);
 }

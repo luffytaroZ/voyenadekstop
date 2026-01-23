@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import {
   useBrainMaps,
@@ -13,9 +13,14 @@ import {
   useDeleteBrainMapConnection,
   useUpdateBrainMap,
   useNotes,
+  useEvents,
 } from '../queries';
-import BrainMapCanvas from '../components/BrainMapCanvas';
 import type { BrainMapNode } from '../types';
+
+// Lazy load 3D canvas to prevent crashes if WebGL unavailable
+const BrainMapCanvas3D = lazy(() => import('../components/BrainMapCanvas3D'));
+
+type NodeFilter = 'all' | 'notes' | 'events' | 'ideas';
 
 // Color palette for nodes
 const NODE_COLORS = [
@@ -53,6 +58,10 @@ export default function BrainMapPage() {
   const { data: brainMaps = [], isLoading: mapsLoading } = useBrainMaps();
   const { data: currentMap, isLoading: mapLoading } = useBrainMap(brainMapId);
   const { data: notes = [] } = useNotes();
+  const { data: events = [] } = useEvents();
+
+  // Filter state for "Show All" view
+  const [nodeFilter, setNodeFilter] = useState<NodeFilter>('all');
   const createMap = useCreateBrainMap();
   const deleteMap = useDeleteBrainMap();
   const updateMap = useUpdateBrainMap();
@@ -70,41 +79,88 @@ export default function BrainMapPage() {
   // Check if viewing "all notes" mode
   const isAllNotesView = brainMapId === 'all';
 
-  // Generate nodes from all notes for "Show All" view
-  const allNotesData = useMemo(() => {
+  // Generate nodes from notes and events for "Show All" view
+  const allItemsData = useMemo(() => {
     if (!isAllNotesView) return null;
 
-    const generatedNodes: BrainMapNode[] = notes.map((note, idx) => {
-      // Position nodes in a spiral pattern using golden angle
-      const angle = idx * GOLDEN_ANGLE;
-      const radius = 60 + Math.sqrt(idx) * 50;
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      const color = NODE_COLORS[idx % NODE_COLORS.length];
+    const generatedNodes: BrainMapNode[] = [];
+    let idx = 0;
 
-      return {
-        id: `note-${note.id}`,
-        brain_map_id: 'all',
-        parent_node_id: null,
-        linked_note_id: note.id,
-        label: note.title || 'Untitled',
-        x,
-        y,
-        color,
-        shape: 'circle' as const,
-        size: 'medium' as const,
-        is_collapsed: false,
-        layer: 1,
-        sort_order: idx,
-        created_at: note.created_at,
-        updated_at: note.updated_at,
-      };
-    });
+    // Add notes (if filter allows)
+    if (nodeFilter === 'all' || nodeFilter === 'notes') {
+      notes.forEach((note) => {
+        const angle = idx * GOLDEN_ANGLE;
+        const radius = 60 + Math.sqrt(idx) * 50;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        const color = NODE_COLORS[idx % NODE_COLORS.length];
+
+        generatedNodes.push({
+          id: `note-${note.id}`,
+          brain_map_id: 'all',
+          parent_node_id: null,
+          linked_note_id: note.id,
+          linked_event_id: undefined,
+          label: note.title || 'Untitled',
+          x,
+          y,
+          color,
+          shape: 'circle' as const,
+          size: 'medium' as const,
+          is_collapsed: false,
+          layer: 1,
+          created_at: note.created_at,
+          updated_at: note.updated_at,
+        });
+        idx++;
+      });
+    }
+
+    // Add events (if filter allows)
+    if (nodeFilter === 'all' || nodeFilter === 'events') {
+      const pendingEvents = events.filter((e) => e.status !== 'completed');
+      pendingEvents.forEach((event) => {
+        const angle = idx * GOLDEN_ANGLE;
+        const radius = 60 + Math.sqrt(idx) * 50;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+
+        // Event colors based on category
+        const eventColors: Record<string, string> = {
+          work: '#3b82f6',
+          meeting: '#8b5cf6',
+          personal: '#22c55e',
+          todo: '#f97316',
+        };
+        const color = eventColors[event.category || 'personal'] || '#6366f1';
+
+        generatedNodes.push({
+          id: `event-${event.id}`,
+          brain_map_id: 'all',
+          parent_node_id: null,
+          linked_note_id: undefined,
+          linked_event_id: event.id,
+          label: event.title,
+          x,
+          y,
+          color,
+          shape: 'diamond' as const,
+          size: event.priority === 'high' ? 'large' : 'medium' as const,
+          is_collapsed: false,
+          layer: 1,
+          created_at: event.created_at,
+          updated_at: event.updated_at,
+        });
+        idx++;
+      });
+    }
+
+    const totalItems = generatedNodes.length;
 
     return {
       brain_map: {
         id: 'all',
-        title: 'All Notes',
+        title: 'All Items',
         description: 'Everything in one view',
         center_node_id: null,
         created_at: new Date().toISOString(),
@@ -112,8 +168,11 @@ export default function BrainMapPage() {
       },
       nodes: generatedNodes,
       connections: [],
+      totalItems,
+      notesCount: nodeFilter === 'events' ? 0 : notes.length,
+      eventsCount: nodeFilter === 'notes' ? 0 : events.filter((e) => e.status !== 'completed').length,
     };
-  }, [isAllNotesView, notes]);
+  }, [isAllNotesView, notes, events, nodeFilter]);
 
   // Filter maps by search
   const filteredMaps = brainMaps.filter(
@@ -514,14 +573,35 @@ export default function BrainMapPage() {
             </button>
           </div>
         ) : isAllNotesView ? (
-          // All Notes View
+          // All Items View
           <>
             <div className="brain-map-toolbar">
               <div className="brain-map-title">
-                <span className="brain-map-title-text">All Notes</span>
-                <span className="brain-map-title-count">{notes.length} items</span>
+                <span className="brain-map-title-text">All Items</span>
+                <span className="brain-map-title-count">{allItemsData?.totalItems || 0} items</span>
               </div>
               <div className="brain-map-toolbar-actions">
+                {/* Filter buttons */}
+                <div className="brain-map-filters">
+                  <button
+                    className={`filter-btn ${nodeFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setNodeFilter('all')}
+                  >
+                    All
+                  </button>
+                  <button
+                    className={`filter-btn ${nodeFilter === 'notes' ? 'active' : ''}`}
+                    onClick={() => setNodeFilter('notes')}
+                  >
+                    Notes ({allItemsData?.notesCount || 0})
+                  </button>
+                  <button
+                    className={`filter-btn ${nodeFilter === 'events' ? 'active' : ''}`}
+                    onClick={() => setNodeFilter('events')}
+                  >
+                    Events ({allItemsData?.eventsCount || 0})
+                  </button>
+                </div>
                 <button
                   className={`toolbar-btn ${showMinimap ? 'active' : ''}`}
                   onClick={() => setShowMinimap(!showMinimap)}
@@ -531,33 +611,37 @@ export default function BrainMapPage() {
               </div>
             </div>
 
-            {allNotesData && allNotesData.nodes.length > 0 ? (
-              <BrainMapCanvas
-                nodes={allNotesData.nodes}
-                connections={allNotesData.connections}
-                selectedNodeId={selectedNodeId}
-                editingNodeId={null}
-                isAddingNode={false}
-                isConnecting={false}
-                connectFromNodeId={null}
-                showMinimap={showMinimap}
-                onNodeClick={(nodeId) => {
-                  const node = allNotesData.nodes.find(n => n.id === nodeId);
-                  if (node?.linked_note_id) {
-                    navigate({ to: '/notes/$noteId', params: { noteId: node.linked_note_id } });
-                  }
-                }}
-                onNodeDoubleClick={() => {}}
-                onNodeDrag={() => {}}
-                onCanvasClick={() => setSelectedNodeId(null)}
-                onNodeLabelChange={() => {}}
-                onConnectionDelete={() => {}}
-              />
+            {allItemsData && allItemsData.nodes.length > 0 ? (
+              <Suspense fallback={<div className="brain-map-loading"><p>Loading 3D...</p></div>}>
+                <BrainMapCanvas3D
+                  nodes={allItemsData.nodes}
+                  connections={allItemsData.connections}
+                  selectedNodeId={selectedNodeId}
+                  editingNodeId={null}
+                  isAddingNode={false}
+                  isConnecting={false}
+                  connectFromNodeId={null}
+                  showMinimap={showMinimap}
+                  onNodeClick={(nodeId) => {
+                    const node = allItemsData.nodes.find(n => n.id === nodeId);
+                    if (node?.linked_note_id) {
+                      navigate({ to: '/notes/$noteId', params: { noteId: node.linked_note_id } });
+                    } else if (node?.linked_event_id) {
+                      navigate({ to: '/events' });
+                    }
+                  }}
+                  onNodeDoubleClick={() => {}}
+                  onNodeDrag={() => {}}
+                  onCanvasClick={() => setSelectedNodeId(null)}
+                  onNodeLabelChange={() => {}}
+                  onConnectionDelete={() => {}}
+                />
+              </Suspense>
             ) : (
               <div className="brain-map-empty">
                 <div className="brain-map-empty-icon">📝</div>
-                <h2>No Notes Yet</h2>
-                <p>Create some notes to see them visualized here.</p>
+                <h2>No Items Yet</h2>
+                <p>Create some notes or events to see them visualized here.</p>
               </div>
             )}
           </>
@@ -610,23 +694,25 @@ export default function BrainMapPage() {
             )}
 
             {/* Canvas */}
-            <BrainMapCanvas
-              nodes={currentMap.nodes}
-              connections={currentMap.connections}
-              centerNodeId={currentMap.brain_map.center_node_id ?? undefined}
-              selectedNodeId={selectedNodeId}
-              editingNodeId={editingNodeId}
-              isAddingNode={isAddingNode}
-              isConnecting={isConnecting}
-              connectFromNodeId={connectFromNodeId}
-              showMinimap={showMinimap}
-              onNodeClick={handleNodeClick}
-              onNodeDoubleClick={handleNodeDoubleClick}
-              onNodeDrag={handleNodeDrag}
-              onCanvasClick={handleCanvasClick}
-              onNodeLabelChange={handleUpdateNodeLabel}
-              onConnectionDelete={handleDeleteConnection}
-            />
+            <Suspense fallback={<div className="brain-map-loading"><p>Loading 3D...</p></div>}>
+              <BrainMapCanvas3D
+                nodes={currentMap.nodes}
+                connections={currentMap.connections}
+                centerNodeId={currentMap.brain_map.center_node_id ?? undefined}
+                selectedNodeId={selectedNodeId}
+                editingNodeId={editingNodeId}
+                isAddingNode={isAddingNode}
+                isConnecting={isConnecting}
+                connectFromNodeId={connectFromNodeId}
+                showMinimap={showMinimap}
+                onNodeClick={handleNodeClick}
+                onNodeDoubleClick={handleNodeDoubleClick}
+                onNodeDrag={handleNodeDrag}
+                onCanvasClick={handleCanvasClick}
+                onNodeLabelChange={handleUpdateNodeLabel}
+                onConnectionDelete={handleDeleteConnection}
+              />
+            </Suspense>
           </>
         ) : (
           <div className="brain-map-empty">
